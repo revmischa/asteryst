@@ -1,0 +1,203 @@
+package Lexy::AGI;
+
+use Data::Dumper;
+
+<<<<<<< .mine
+BEGIN { 
+       $ENV{CATALYST_ENGINE} = 'Server::PreFork';
+}
+=======
+use Moose;
+    extends 'Asterisk::FastAGI';
+>>>>>>> .r26
+
+<<<<<<< .mine
+use FindBin;
+use lib "$FindBin::Bin/../lexy3/lib";
+use lib "$FindBin::Bin/../lexy2perl/lib";
+
+use Lexy;
+=======
+has 'caller' => (
+    is => 'rw',
+);
+
+has 'schema' => (
+    is => 'rw',
+);
+
+use FindBin;
+use lib "$FindBin::Bin/../lexy2perl/lib";
+use lib "$FindBin::Bin/../lexy2perl/lexy3/lib";
+
+>>>>>>> .r26
+use Lexy::Util;
+use Lexy::Schema::LexyDB;
+use Lexy::Content;
+
+# load controllers
+use Class::Autouse;
+Class::Autouse->load_recursive("Lexy::AGI::Controller");
+
+# ("dbi:mysql:lexy2:hostname=127.0.0.1:3312", "lexy_app", "HannaBarbera");
+# $Lexy::Properties::property{db_host} = "127.0.0.1:3312";
+# $Lexy::Properties::property{db_name} = "lexy2";
+# $Lexy::Properties::property{db_user} = "lexy_app";
+# $Lexy::Properties::property{db_pass} = "HannaBarbera";
+
+
+Lexy->run;
+
+
+
+sub debug {
+    my ($self, $msg) = @_;
+    warn "$msg\n";
+    $self->agi->noop($msg);
+}
+
+sub prepare_request {
+    my $self = shift;
+    my $agi = $self->agi;
+	
+    $self->schema(Lexy::Schema::LexyDB->get_connection);
+
+    my $info = $self->input;
+    my $caller_id_name = $self->input('calleridname') || '';
+    my $caller_id_num  = Lexy::Util->sanitize_number($self->input('callerid')) || '';
+    my $dest_num       = $self->input('extension') || $self->input('dnid') || '';
+
+    unless ($caller_id_num) {
+        # no callerID number... what to do?
+        $self->debug("Got call with no callerID... bailing");
+        $agi->hangup();
+        return;
+    }
+	
+    $self->debug("Got call from $caller_id_name <$caller_id_num> to DID $dest_num");
+	
+    my $caller = $self->look_up_caller($caller_id_num);
+    $self->caller($caller);
+    $self->debug("Using caller record for $caller_id_num: id=" . $caller->id);
+	
+    $agi->answer();
+    $agi->exec('wait', '1');
+
+#     # Load the default, global LumenVox grammar.
+#     $agi->exec('SpeechCreate');
+#     $agi->exec('SpeechLoadGrammar', 'global', '/etc/lumenvox/Lang/BuiltinGrammars/ABNFBoolean.gram');
+#     $agi->exec('SpeechActivateGrammar', 'global');
+    
+    return 0;
+}
+
+sub look_up_caller {
+    my ($self, $num) = @_;
+    
+	my $caller = $self->schema->resultset('Caller')->search({
+	    -or => [
+	        { phonenumber => $num },
+	        { phone2      => $num },
+	    ],
+	})->single;
+	
+	if (! $caller) {
+	    # virgin caller
+	    $self->debug("Virgin caller, creating caller record for $num...");
+	    $caller = $self->schema->resultset('Caller')->create({
+	        phonenumber => $num,
+	    });
+	} else {
+	    $self->debug("Existing caller record found...");
+	}
+	
+	return $caller;
+}
+
+<<<<<<< .mine
+1;
+=======
+sub finalize_request {
+    my ($self) = @_;
+
+    $self->debug("Finished call, hanging up");
+    $self->agi->hangup;
+}
+
+# overridden from Asterisk::FastAGI
+sub _parse_request {
+  my $self = shift;
+
+  # Grab the method and optional path.
+  my $req = $self->{server}{input}{request};
+  unless ($req) {
+      $self->debug("Did not get request string from AGI server");
+      return;
+  }
+
+  my ($class, $method, $param_string) = $self->_parse_request_uri($req);
+
+  my %params;
+
+  if (defined $param_string) {
+      my (@pairs) = split(/[&;]/,$param_string);
+      foreach (@pairs) {
+          my($p,$v) = split('=',$_,2);
+          $params{$p} = $v;
+      }
+  }
+
+  $self->{request}->{params} = \%params;
+  $self->{request}->{uri} = $req;
+  return;
+}
+
+# parse uri
+sub _parse_request_uri {
+    my ($self, $uri_in) = @_;
+    
+    # split up uri
+     my($class, $method, $param_string) = $uri_in
+         =~ m{ (?: agi://(?:[-\w.:]+) )?  # scheme, host, port
+                / ([^/]*)?                # class
+                / ([^?]*)?                # method
+                 \?? (.*)                 # params
+             }smxi;
+                
+    return ($class, $method, $param_string);
+}
+
+# overridden from Asterisk::FastAGI
+sub dispatch_request {
+  my $self = shift;
+
+  $self->prepare_request;
+
+  $self->forward($self->{request}->{uri}, %{$self->{request}->{params}});
+
+  $self->finalize_request;
+}
+
+sub forward {
+    my ($self, $path, @params) = @_;
+
+    my ($class, $method) = $self->_parse_request_uri($path);
+
+    no strict 'refs';
+    eval {
+        "Lexy::AGI::Controller::$class"->$method($self, @params);
+    };
+    if ($@) {
+        my $err = $@;
+        my $error_message;
+        if (ref $err) {
+            $error_message = Dumper($err);
+        } else {
+            $error_message = $err;
+        }
+        $self->debug("Lexy::AGI::Controller::$class->$method failed.  Error message:  $error_message");
+    }
+}
+
+1;
+>>>>>>> .r26
