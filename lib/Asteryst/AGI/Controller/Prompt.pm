@@ -10,12 +10,10 @@ use Asteryst::AGI::Exceptions;
 use aliased 'Asteryst::AGI::Commands::YesNo' => 'YesNoCommand';
 
 use constant {
-    PROMPT_ROOT_DEFAULT => '/var/www/html/share/prompts',
-    
-    
-    CALLER_ID_BLOCKED   => 'index/blocked',
-    END_OF_PLAYLIST_VIRGIN => 'playcontent/best-of-ces-end',
-    END_OF_PLAYLIST => undef,
+    PROMPT_ROOT_DEFAULT => '(agi/prompt_directory config not set!)',
+
+    END_OF_PLAYLIST_VIRGIN => undef,
+    END_OF_PLAYLIST        => undef,
 };
 
 sub prompt_root {
@@ -42,55 +40,25 @@ sub end_of_playlist {
 
 sub no_caller_id {
     my ($self, $c) = @_;
-    $self->play($c, CALLER_ID_BLOCKED); # "your caller id is blocked please call back with callerID on..."
+    $self->play($c, 'callerid_blocked');
 }
 
 sub fatal_error {
     my ($self, $c) = @_;
-    $self->play($c, 'root/error');
-}
-
-sub play_item_title {
-    my ($self, $c, $item) = @_;
-    
-    my $feed = $item->audiofeed or return;
-    
-    $self->play_feed_title($c, $feed);
-}
-
-sub play_feed_title {
-    my ($self, $c, $feed) = @_;
-
-    my $cname = $feed->canonicalname or return;
-    $self->play($c, 'programs/' . $cname, $feed->shortname);
+    $self->play($c, 'error');
 }
 
 sub greeting {
     my ($self, $c) = @_;
     
-    if ($c->caller->numvisits < 2) {
+    if ($c->caller->numvisits <= 1) {
         # virgin caller
-        if ($c->direct_connect) {
-            # short intro, get to DC quickly
-            $c->prompt('default/greetings/virgin');
-            $c->session->needs_virgin_greeting(1);
-        } else {
-            # long intro
-            $c->log(3, "Playing virgin greeting prompt");
-            $c->prompt('greetings/intro-asteryst');
+        $c->log(3, "Playing virgin greeting prompt");
+        $c->prompt('greetings/intro-virgin');
         }
     } else {
         $c->log(3, "Playing greeting prompt");
-        
-        my $file = 'greetings/' . {
-            0 => 'greeting-0',
-            1 => 'greeting-1',
-            2 => 'greeting-2',
-            3 => 'greeting-3',
-            4 => 'greeting-4',
-        }->{int(rand(5))};
-    
-        $self->play($c, $file);
+        $self->play($c, 'greetings/intro');
     }
 }
 
@@ -150,11 +118,11 @@ DIAGNOSTICS
 =cut
 sub wait_to_unpause {
     my ($self, $c) = @_;
-    my $digits = '123456789'; # unpause on any digit
+    my $digits = '1234567890'; # unpause on any digit
     my $agi = $c->agi;
     my $debug = 1;
 
-    my $pause_message_rel_path = 'playcontent/pause';
+    my $pause_message_rel_path = 'pause';
     my $timeout_in_seconds = $c->config->{agi}{pause_timeout};
     my $pause_message_path = $self->get_path($c, $pause_message_rel_path);
 
@@ -233,6 +201,7 @@ sub play_busy {
     $c->background($self->get_path($c, 'busy'));
 }
 
+# disabled
 sub background {
     my ($self, $c, $file) = @_;
     
@@ -242,13 +211,10 @@ sub background {
     $c->agi->exec('Background', $file);
 }
 
+# quick playback of audio notification clips
 sub earcon {
     my ($self, $c, $earcon) = @_;
     $c->prompt("earcons/$earcon");
 }
-
-
-#no Moose;
-#__PACKAGE__->meta->make_immutable;
 
 1;

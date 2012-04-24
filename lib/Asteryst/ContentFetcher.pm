@@ -1,6 +1,6 @@
 package Asteryst::ContentFetcher;
 
-# this is a module to fetch content from S3 and cache it locally
+# this is a module to fetch content from a URL and cache it locally
 
 use Moose;
 use namespace::autoclean;
@@ -8,7 +8,6 @@ use namespace::autoclean;
 use Asteryst::Config;
 use File::DirList;
 use LWP::UserAgent;
-use Asteryst::Schema::AsterystDB::Result::Content;
 
 has 'file_extension' => (
     is => 'rw',
@@ -64,12 +63,10 @@ sub get_content_cache_path {
     return $path;
 }
 
-# takes a content object, returns path on disk
+# takes a content identifier and url to audio file, returns path on disk
 # in array context returns ($path, $was_cached)
 sub fetch_content {
-    my ($self, $content_id) = @_;
-    
-    my $content = new Asteryst::Schema::AsterystDB::Result::Content->new({ id => $content_id });
+    my ($self, $content_id, $url) = @_;
     
     my $cache_dir = $self->cache_dir;
     
@@ -96,7 +93,6 @@ sub fetch_content {
         return wantarray ? ($path, 1) : $path;
     }
     
-    my $url = $content->s3_url;
     my $ua = new LWP::UserAgent();
     my $res = $ua->get($url, ':content_file' => $path);
     

@@ -47,19 +47,6 @@ has 'caller' => (
     clearer => 'clear_caller',
 );
 
-has 'direct_connect' => (
-    is => 'rw',
-    isa => 'Asteryst::Schema::AsterystDB::Result::Partnerdirectconnects',
-    clearer => 'clear_dc',
-);
-
-# directconnect partner
-has 'partner' => (
-    is => 'rw',
-    isa => 'Asteryst::Schema::AsterystDB::Result::Partner',
-    clearer => 'clear_partner',
-);
-
 # dialed number
 has 'dnid' => (
     is => 'rw',
@@ -110,11 +97,6 @@ has 'loaded_controllers' => (
     isa => 'HashRef',
 );
 
-has 'voice_session' => (
-    is => 'rw',
-    isa => 'Maybe[Asteryst::Schema::AsterystDB::Result::Voicesession]',
-);
-
 has 'hungup' => (
     is => 'rw',
     isa => 'Bool',
@@ -156,8 +138,6 @@ has 'speech_enabled' => (
 
 
 use FindBin;
-use lib "$FindBin::Bin/../asteryst2perl/lib";
-use lib "$FindBin::Bin/../asteryst2perl/asterysk3/lib";
 
 use Asteryst::Util;
 use Asteryst::Schema::AsterystDB;
@@ -174,7 +154,7 @@ use Asteryst::AGI::Events;
 sub default_values {
     return {
         log_level => 3,
-        log_file  => '/var/asteryst-inst/',
+        log_file  => '/var/asteryst/',
     };
 }
 
@@ -239,14 +219,7 @@ sub deactivate_grammar {
 
 =head2 config
 
-Return the config, read in from asteryst.yml.
-
-$c->config();
-
-This method uses memoization.  The first time it is invoked, it will read
-asteryst.yml; thereafter, it willreturn the cached copy.
-
-It logs any errors to the Asterisk console, using $self->debug.
+Return the config, read in from asteryst.yml (other formats are supported as well).
 
 =cut
 my $config = Asteryst::Config->get;
@@ -273,8 +246,11 @@ sub noop {
 
 sub check_config {
     my ($self) = @_;
-    
-    die "sound_file_extension missing" unless $self->config->{agi}{sound_file_extension};
+
+    my @required_agi = qw/ sound_file_extension pause_timeout /;
+    foreach my $required (@required_agi) {
+        die "agi/$required missing" unless $self->config->{agi}{$required};
+    }
     
     return 1;
 }
@@ -283,7 +259,8 @@ sub init_speech_engine {
     my ($self) = @_;
     
     return unless $self->speech_enabled;
-    
+
+    # allow only one keypress to interrupt speech. this may need adjustment.
     $self->agi->set_variable(SPEECH_DTMF_MAXLEN => 1);
 
     # load speech engine
@@ -318,15 +295,12 @@ sub setup {
     $self->forward("/$_/LOAD_CONTROLLER") for qw/Comments Entry Playlist/;
 
     # reset state
-    $self->clear_partner;
     $self->clear_cached_dbh;
     $self->hungup(0);
     $self->detached(0);
     $self->fatal_error(0);
-    $self->clear_dc;
     $self->clear_caller;
     $self->stash({});
-    $self->voice_session(undef);
     $self->no_detach_on_hangup(0);
     
     $self->agi->set_autohangup($self->config->{agi}{max_call_time});
@@ -398,16 +372,9 @@ sub dbh {
     return $self->_dbh;
 }
 
-# record an action in voiceActionTrackingLog
+# this is a good place to hook in tracking logic for your application
 sub log_action {
     my ($self, $action_name, $fields) = @_;
-    
-    $fields ||= {};
-	$fields->{caller}     ||= $self->caller->id if $self->caller;
-	$fields->{session}    ||= $self->session->session_id if $self->session && $self->session->session_id;
-	$fields->{actiontime} ||= \ 'NOW()';
-
-    return $self->schema->resultset('VoiceactiontrackingLog2')->log_action($action_name, $fields);
 }
 
 # like log_action but populates audioFeed, audioFeedItem, content from a playlist item

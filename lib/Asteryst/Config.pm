@@ -12,7 +12,7 @@ sub get {
     if (! defined $config) {
         my $own_path = (caller(0))[1];
         my $own_dir  = dirname $own_path;
-        my $config_path = "$own_dir/../../asteryst3";
+        my $config_path = "$own_dir/../..";
         eval { $config = Config::JFDI->new(
             name => "Asteryst",
             path => $config_path,

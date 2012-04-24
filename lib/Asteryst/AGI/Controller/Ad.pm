@@ -8,6 +8,8 @@ use XML::Simple;
 use Asteryst::Util;
 use Digest::SHA1;
 
+# supports apptera, voodoovox
+
 sub play {
     my ($self, $c) = @_;
     

@@ -2,15 +2,12 @@ package Asteryst::ContentPrecache;
 
 use Moose;
 
-use FindBin;
-use lib "$FindBin::RealBin/../asteryst2perl/lib";
-use lib "$FindBin::RealBin/../asteryst3/lib";
-use lib "$FindBin::RealBin/../lib";
-
 use Asteryst::ContentFetcher;
 use Profile::Log;
-use Asteryst::Model::AsterystDB;
 with 'MooseX::Getopt';
+
+# This is for creating a script that periodically pre-fetches and
+# caches content with ContentFetcher
 
 has 'debug'  => (is => 'rw', isa => 'Bool', required => 0);
 has 'daemonize'  => (is => 'rw', isa => 'Bool', required => 0);
@@ -87,14 +84,8 @@ sub build_fetcher {
 
 sub get_content_ids {
     my ($self) = @_;
-    
-    my $schema = Asteryst::Schema::AsterystDB->get_connection;
-    my $rs = $schema->resultset('Audiofeed');
-    
-    return $rs->search({
-    }, {
-        order_by => [qw/created/],
-    })->get_column('lastcontent')->all;
+
+    # code to retrieve content identifiers goes here...
 }
 
 sub fetch_content {
