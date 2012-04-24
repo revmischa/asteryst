@@ -5,7 +5,6 @@ extends 'Asteryst::AGI::Controller';
 
 use LWP::UserAgent;
 use XML::Simple;
-use Asteryst::Util;
 use Digest::SHA1;
 
 # supports apptera, voodoovox
@@ -60,7 +59,7 @@ sub apptera {
     my $url = $config->{ad_url}
         or die "No ad url configured";
         
-    $url .= "&callerId=" . Asteryst::Util->format_number($c->caller_id);
+    $url .= "&callerId=" . $self->format_number($c->caller_id);
     
     my $ua = new LWP::UserAgent;
     my $res = $ua->get($url);
@@ -203,6 +202,16 @@ sub apptera {
     }
 
     return 1;
+}
+
+sub format_number {
+    my ( $class, $num ) = @_;
+
+    return "" unless defined $num;
+
+    my ( $area, $prefix, $phone_num ) = $num =~ /(\d{3})(\d{3})(\d{4})/;
+    return $num unless $area && $prefix && $phone_num;
+    return "${area}-${prefix}-$phone_num";
 }
 
 1;

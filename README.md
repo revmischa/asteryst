@@ -1,9 +1,9 @@
-asteryst
+Asteryst
 ========
 
-Asterisk FastAGI application framework. Supports speech API and method dispatch based on FastAGI requests.
+Asteyst is a voice application framework for Asterisk. It supports the generic speech API and method dispatch based on FastAGI requests, among other things.
 
-Asterysk is designed to do for voice applications what Catalyst does for web applications, with a similar interface and structure.
+Asterysk is designed to do for voice applications what Catalyst does for web applications, with a similar interface and structure. It attempts to abstract the messy details of the API used for your application's interface and to allow you to concentrate on writing high-level maintainable code.
 
 
 ## Usage
@@ -11,6 +11,8 @@ Asterysk is designed to do for voice applications what Catalyst does for web app
 Many prompt file paths are currently hard-coded. You'll probably want to make your sound files reflect these, or change them.
 
 You will need to create a config file, `asteryst.yml`. See `sample_asteryst.yml`
+
+Install dependencies. `cpanm -v --installdeps .` should do the trick.
 
 If you do actually wish to use this code, please drop us a line. There are pieces that will need filling in, since this was once a part of a larger codebase.
 

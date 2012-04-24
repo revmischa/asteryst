@@ -12,7 +12,6 @@ use DBIx::Class::Storage::DBI::Replicated;
 
 use Asteryst::Config;
 use Asteryst::ContentFetcher;
-use Asteryst::ContentSaver;
 use Asteryst::AGI::Session;
 
 use Moose;
@@ -20,16 +19,7 @@ use Moose;
 
 # make sure controllers are loaded and compile ok
 use Asteryst::AGI::Controller::Ad;
-use Asteryst::AGI::Controller::Comments;
-use Asteryst::AGI::Controller::DirectConnect;
-use Asteryst::AGI::Controller::Entry;
-use Asteryst::AGI::Controller::Help;
-use Asteryst::AGI::Controller::Playlist;
 use Asteryst::AGI::Controller::Prompt;
-use Asteryst::AGI::Controller::Publish;
-use Asteryst::AGI::Controller::Related;
-use Asteryst::AGI::Controller::Subscription;
-use Asteryst::AGI::Controller::Tip;
 use Asteryst::AGI::Controller::UserInput;
 
 has 'session' => (
@@ -138,11 +128,6 @@ has 'speech_enabled' => (
 
 
 use FindBin;
-
-use Asteryst::Util;
-use Asteryst::Schema::AsterystDB;
-use Asteryst::Content;
-use Asteryst::Common qw//;
 
 # load controllers
 use Class::Autouse;
@@ -377,22 +362,6 @@ sub log_action {
     my ($self, $action_name, $fields) = @_;
 }
 
-# like log_action but populates audioFeed, audioFeedItem, content from a playlist item
-sub log_action_for_playlist_item {
-    my ($self, $action_name, $item, $fields) = @_;
-    
-    croak "No playlist item passed to log_action_for_playlist_item()"
-        unless $item;
-    
-    $fields ||= {};
-    
-    $fields->{audiofeed}     ||= $item->feed->id      if $item->feed;
-    $fields->{audiofeeditem} ||= $item->feed_item->id if $item->feed_item;
-    $fields->{content}       ||= $item->content->id   if $item->content;
-    
-    $self->log_action($action_name, $fields);
-}
-
 sub dump {
     my ($self, $obj, $name) = @_;
     my $msg = Data::Dumper->Dump([$obj], [$name]);
@@ -496,17 +465,6 @@ sub build_content_fetcher {
     );
 }
 
-sub build_content_saver {
-    my ($self) = @_;
-    
-    my $api_base = $self->config->{agi}{content_server_base_uri}
-        or return $self->fatal_detach("Content server API URL is not configured!");
-
-    return Asteryst::ContentSaver->new(
-        api_base => $api_base,
-    );
-}
-
 
 sub fetch_content_cached {
     my ($self, $content) = @_;
@@ -591,7 +549,7 @@ sub prepare_request {
     my $info = $self->input;
     $self->log(4, "got AGI call with input: " . Dumper($self->input));
     my $caller_id_name = $self->input('calleridname') || '';
-    my $caller_id_num  = Asteryst::Util->sanitize_number($self->input('callerid')) || '';
+    my $caller_id_num  = $self->sanitize_phone($self->input('callerid')) || '';
     my $dest_num       = $self->input('dnid') || $self->input('extension') || '';
     my $session_id     = $self->input('uniqueid');
 
@@ -876,6 +834,25 @@ sub _agi_parse {
   # Parse the request.
   my %input = $self->agi->ReadParse();
   $self->{server}{input} = \%input;
+}
+
+sub sanitize_phone {
+    my ($class, $num) = @_;
+
+    return undef unless $num;
+    $num =~ s/\D//g;    # strip out non-digit chars
+
+    # should be no greater than 16 digits and no less than 3
+    my $length = length $num;
+    return undef unless $length <= 16 && $length >= 3;
+
+    # if it's 10 digits and doesn't start with a 0 or 1, assume it is
+    # a U.S. number without country code
+    if ($length == 10 && $num !~ m/^[01]/) {
+        $num = "1$num";
+    }
+
+    return $num;
 }
 
 

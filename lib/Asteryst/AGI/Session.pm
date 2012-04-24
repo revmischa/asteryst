@@ -4,8 +4,6 @@ package Asteryst::AGI::Session;
 
 use Moose;
 
-use Asteryst::AGI::Controller::Comments;
-
 has session_id => (
     is => 'rw',
     isa => 'Str',

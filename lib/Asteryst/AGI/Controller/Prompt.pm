@@ -9,33 +9,16 @@ use Asteryst::AGI::Events;
 use Asteryst::AGI::Exceptions;
 use aliased 'Asteryst::AGI::Commands::YesNo' => 'YesNoCommand';
 
-use constant {
-    PROMPT_ROOT_DEFAULT => '(agi/prompt_directory config not set!)',
-
-    END_OF_PLAYLIST_VIRGIN => undef,
-    END_OF_PLAYLIST        => undef,
-};
-
 sub prompt_root {
     my ($self, $c) = @_;
     
-    return $c->config->{agi}{prompt_directory} || PROMPT_ROOT_DEFAULT;
+    return $c->config->{agi}{prompt_directory} or die "prompt directory not configured";
 }
 
 # get full path to a prompt file
 sub get_path {
     my ($self, $c, $file) = @_;
     return $self->prompt_root($c) . '/' . $file;
-}
-
-sub end_of_playlist {
-    my ($self, $c) = @_;
-    
-    if ($c->stash->{is_virgin}) {
-        $self->play($c, END_OF_PLAYLIST_VIRGIN);
-    } else {
-        $self->play($c, END_OF_PLAYLIST);
-    }
 }
 
 sub no_caller_id {
@@ -55,7 +38,6 @@ sub greeting {
         # virgin caller
         $c->log(3, "Playing virgin greeting prompt");
         $c->prompt('greetings/intro-virgin');
-        }
     } else {
         $c->log(3, "Playing greeting prompt");
         $self->play($c, 'greetings/intro');
