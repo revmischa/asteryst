@@ -1,0 +1,74 @@
+# Sample configuration for an Asteryst application
+
+agi:
+    log_file:  /path/to/app.log
+    log_level:  2
+
+    # Check to see if content exists before playing it
+    # this is only possible if content is on the same machine as the fastagi daemon
+    check_content_existance: 1
+
+    # Maximum call time, it will auto-hangup this many seconds after answering
+    max_call_time: 3600  # 60 minutes
+
+    # Where to cache content files from S3
+    content_cache_directory: /tmp/agi_content_cache
+
+    # .gram grammar files for speech recognition
+    grammar_dir:  /path/to/grammars
+
+    # Location of prompt files
+    prompt_directory:  /path/to/prompts
+
+    # extension to use for sound files
+    sound_file_extension: sln
+
+    #################################
+    # Grammar/speech settings
+    #################################
+    #
+    # Normally, the system automatically auto-loads a grammar named mycontroller.gram
+    # for a controller named Asteryst::AGI::Controller::Mycontroller.  Here are some
+    # settings to override that behavior.
+    #
+    # Location of .gram files (which control LumenVox speech recognition)
+    grammar_dir:  /var/www/html/share/grammars
+    grammars:
+        # These settings override the default convention-over-configuration mapping
+        # of controller $con to grammar file grammar_dir/${con}.gram.
+        #
+        # Format:
+        # controller_name:  /path/to/file.gram
+        #
+        # Example:
+        # entry: /etc/lumenvox/Lang/BuiltinGrammars/just-an-example.gram
+        
+        # grammars to automatically activate when forwarding to these controllers
+        auto_activate_grammars:
+        
+    # Use asterisk speech API with voice recognition
+    speech_enabled: 0
+
+    # Use text-to-speech engine?
+    use_tts: 1
+
+    # What asterisk command to use for TTS?
+    tts_app: Festival  # default 'Flite'
+
+
+    #################################
+    # Ad settings
+    #################################
+    play_ads: 0
+
+    ads:
+        provider: apptera
+        cache_dir: /path/to/ads-cache
+        
+        apptera:
+            ad_url: 'http://ads.apptera.com/amase/apptera.ad?locality=US&localityType=Nation&adType=PrimarySponsor&publisher=ME&category=0'
+            billing_url: 'http://ads.apptera.com/amase/apptera.bill'
+
+        voodoovox:
+            fastagi_address: agi://127.0.0.1:4580
+            client_key: FOOOOOO
