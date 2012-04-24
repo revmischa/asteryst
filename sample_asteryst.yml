@@ -4,12 +4,18 @@ agi:
     log_file:  /path/to/app.log
     log_level:  2
 
+    fastagi_port: 4573
+    log_level: 4   # debug
+
     # Check to see if content exists before playing it
     # this is only possible if content is on the same machine as the fastagi daemon
     check_content_existance: 1
 
     # Maximum call time, it will auto-hangup this many seconds after answering
     max_call_time: 3600  # 60 minutes
+
+    # How long to wait for input when pausing
+    pause_timeout: 1800  # 30 minutes
 
     # Where to cache content files from S3
     content_cache_directory: /tmp/agi_content_cache
