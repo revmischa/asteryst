@@ -3,7 +3,7 @@ Asteryst
 
 Asteyst is a voice application framework for Asterisk. It supports the generic speech API and method dispatch based on FastAGI requests, among other things.
 
-Asterysk is designed to do for voice applications what Catalyst does for web applications, with a similar interface and structure. It attempts to abstract the messy details of the API used for your application's interface and to allow you to concentrate on writing high-level maintainable code.
+Asteryst is designed to do for voice applications what Catalyst does for web applications, with a similar interface and structure. It attempts to abstract the messy details of the API used for your application's interface and to allow you to concentrate on writing high-level maintainable code.
 
 
 ## Usage
