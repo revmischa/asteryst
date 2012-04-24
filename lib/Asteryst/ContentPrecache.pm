@@ -1,15 +1,15 @@
-package Asterysk::ContentPrecache;
+package Asteryst::ContentPrecache;
 
 use Moose;
 
 use FindBin;
-use lib "$FindBin::RealBin/../asterysk2perl/lib";
-use lib "$FindBin::RealBin/../asterysk3/lib";
+use lib "$FindBin::RealBin/../asteryst2perl/lib";
+use lib "$FindBin::RealBin/../asteryst3/lib";
 use lib "$FindBin::RealBin/../lib";
 
-use Asterysk::ContentFetcher;
+use Asteryst::ContentFetcher;
 use Profile::Log;
-use Asterysk::Model::AsteryskDB;
+use Asteryst::Model::AsterystDB;
 with 'MooseX::Getopt';
 
 has 'debug'  => (is => 'rw', isa => 'Bool', required => 0);
@@ -31,14 +31,14 @@ has 'log_file'  => (
     is => 'rw',
     isa => 'Str',
     required => 1,
-    default => '/home/asterysk/fetch_content.log',
+    default => '/home/asteryst/fetch_content.log',
 );
 has 'logfh' => (
     is => 'rw',
 );
 has 'fetcher' => (
     is => 'rw',
-    isa => 'Asterysk::ContentFetcher',
+    isa => 'Asteryst::ContentFetcher',
     lazy => 1,
     builder => 'build_fetcher',
 );
@@ -80,7 +80,7 @@ sub run {
 sub build_fetcher {
     my ($self) = @_;
     
-    return new Asterysk::ContentFetcher(
+    return new Asteryst::ContentFetcher(
         expire => $self->expire,
     );
 }
@@ -88,7 +88,7 @@ sub build_fetcher {
 sub get_content_ids {
     my ($self) = @_;
     
-    my $schema = Asterysk::Schema::AsteryskDB->get_connection;
+    my $schema = Asteryst::Schema::AsterystDB->get_connection;
     my $rs = $schema->resultset('Audiofeed');
     
     return $rs->search({

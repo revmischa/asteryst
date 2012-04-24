@@ -1,13 +1,13 @@
-package Asterysk::AGI::Controller::Prompt;
+package Asteryst::AGI::Controller::Prompt;
 
 use Moose;
-    extends 'Asterysk::AGI::Controller';
+    extends 'Asteryst::AGI::Controller';
 
 use Carp;
 
-use Asterysk::AGI::Events;
-use Asterysk::AGI::Exceptions;
-use aliased 'Asterysk::AGI::Commands::YesNo' => 'YesNoCommand';
+use Asteryst::AGI::Events;
+use Asteryst::AGI::Exceptions;
+use aliased 'Asteryst::AGI::Commands::YesNo' => 'YesNoCommand';
 
 use constant {
     PROMPT_ROOT_DEFAULT => '/var/www/html/share/prompts',
@@ -77,7 +77,7 @@ sub greeting {
         } else {
             # long intro
             $c->log(3, "Playing virgin greeting prompt");
-            $c->prompt('greetings/intro-asterysk');
+            $c->prompt('greetings/intro-asteryst');
         }
     } else {
         $c->log(3, "Playing greeting prompt");
@@ -142,7 +142,7 @@ DIAGNOSTICS
     =item croak()'s with a string exception if the pause_message_rel_path
      or the timeout named arg is undefined.
 
-    =item Dies with a Asterysk::AGI::Exception::StreamFileFailed object if
+    =item Dies with a Asteryst::AGI::Exception::StreamFileFailed object if
     the STREAM FILE fails (i.e. the AGI peer sends result=-1)
 
 =back
@@ -162,7 +162,7 @@ sub wait_to_unpause {
     my $stream_retval = $agi->stream_file($pause_message_path, $digits, 0);
     if ($stream_retval == -1) {
         #$c->debug() if $debug;
-        Asterysk::AGI::Exception::StreamFileFailed->throw(path => $pause_message_path);
+        Asteryst::AGI::Exception::StreamFileFailed->throw(path => $pause_message_path);
     } elsif ($stream_retval == 0) {
         # We finished streaming the file, but the user didn't press any of our
         # recognized digits.  Keep waiting.
@@ -170,9 +170,9 @@ sub wait_to_unpause {
         if ($wait_retval == 0) {
             # Timed out.
             $c->detach();
-            Asterysk::AGI::Exception::UnreachableCodeReached->throw();
+            Asteryst::AGI::Exception::UnreachableCodeReached->throw();
         } elsif ($wait_retval == -1) {
-            Asterysk::AGI::Exception::WaitForDigitFailed->throw();
+            Asteryst::AGI::Exception::WaitForDigitFailed->throw();
         } else {
             return $wait_retval; # the digit that was pressed
         }
@@ -180,7 +180,7 @@ sub wait_to_unpause {
         return $stream_retval;   # the digit that was pressed
     }
 
-    Asterysk::AGI::Exception::UnreachableCodeReached->throw();
+    Asteryst::AGI::Exception::UnreachableCodeReached->throw();
 }
 
 # play $prompt, wait for caller to say yes or no, return bool
@@ -201,7 +201,7 @@ sub yes_or_no {
     if ($@) {
         my $event = $@;
         
-        if ($event->isa('Asterysk::AGI::UserGaveCommand')) {
+        if ($event->isa('Asteryst::AGI::UserGaveCommand')) {
             $c->log(4, "yes_or_no command: $event");
             
             if ($event->command =~ YesNoCommand->yes) {

@@ -1,7 +1,7 @@
-package Asterysk::Playlist::Item::FeedItem;
+package Asteryst::Playlist::Item::FeedItem;
 
 use Moose;
-extends 'Asterysk::Playlist::Item';
+extends 'Asteryst::Playlist::Item';
 
 use Carp qw/croak/;
 
@@ -15,7 +15,7 @@ has subscription_id => (
 
 has feed_item => (
     is => 'rw',
-    isa => 'Asterysk::Schema::AsteryskDB::Result::Audiofeeditem',
+    isa => 'Asteryst::Schema::AsterystDB::Result::Audiofeeditem',
     lazy => 1,
     builder => 'build_feed_item',
 );

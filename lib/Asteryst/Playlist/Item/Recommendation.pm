@@ -1,7 +1,7 @@
-package Asterysk::Playlist::Item::Recommendation;
+package Asteryst::Playlist::Item::Recommendation;
 
 use Moose;
-extends 'Asterysk::Playlist::Item::FeedItem';
+extends 'Asteryst::Playlist::Item::FeedItem';
 
 use Carp qw/croak/;
 

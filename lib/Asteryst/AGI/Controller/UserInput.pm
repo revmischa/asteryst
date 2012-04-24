@@ -1,11 +1,11 @@
-package Asterysk::AGI::Controller::UserInput;
+package Asteryst::AGI::Controller::UserInput;
 
 use Moose;
-extends 'Asterysk::AGI::Controller';
+extends 'Asteryst::AGI::Controller';
 
 use Carp qw/croak/;
-use Asterysk::AGI::Events;
-use Asterysk::AGI::Exceptions;
+use Asteryst::AGI::Events;
+use Asteryst::AGI::Exceptions;
 
 sub play_file {
     my ($self, $c, %args) = @_;
@@ -14,14 +14,14 @@ sub play_file {
     my $content = $args{content};
     
     if (defined $path && ! $path) {
-        return Asterysk::AGI::NoPathToContent->throw(content => $content);
+        return Asteryst::AGI::NoPathToContent->throw(content => $content);
     }
     
     if (defined $path && ! $args{dont_check_existance} &&
          ! $c->check_if_content_path_exists($path)) {
              
         $c->log(2, "Failed existance check for $path");
-        return Asterysk::AGI::MissingSoundFile->throw(content => $content, path => $path);
+        return Asteryst::AGI::MissingSoundFile->throw(content => $content, path => $path);
     }
 
     $c->log(4, "Playing file " . (defined $path ? $path : '(undef)'));
@@ -49,7 +49,7 @@ sub background {
     
     if ($c->hungup) {
         $c->log(2, "Caller hung up during UserInput/background");
-        Asterysk::AGI::UserHungUp->throw;
+        Asteryst::AGI::UserHungUp->throw;
         return;
     }
     
@@ -66,7 +66,7 @@ sub background {
             $bg_retval .= $second_retval if defined $second_retval && $second_retval != -1;
         }
 
-        Asterysk::AGI::UserGaveCommand->throw(
+        Asteryst::AGI::UserGaveCommand->throw(
             command => $bg_retval,
             score   => 1000,
         );
@@ -82,12 +82,12 @@ sub speech_background {
     my $timeout = $args{timeout} || 0;
 
     if (! $path) {
-        return Asterysk::AGI::NoPathToContent->throw(content => $content);
+        return Asteryst::AGI::NoPathToContent->throw(content => $content);
     }
 
     # make sure path exists
     unless ($c->check_if_content_path_exists($path)) {
-        return Asterysk::AGI::MissingSoundFile->throw(content => $content, path => $path);
+        return Asteryst::AGI::MissingSoundFile->throw(content => $content, path => $path);
     }
 
     $self->_speech_start($c);
@@ -98,9 +98,9 @@ sub speech_background {
         # speechbackground failed, either speech engine error or user hung up
 
         if ($c->hungup) {
-            Asterysk::AGI::UserHungUp->throw();
+            Asteryst::AGI::UserHungUp->throw();
         } else {
-            Asterysk::AGI::SpeechBackgroundFailed->throw();
+            Asteryst::AGI::SpeechBackgroundFailed->throw();
         }
     } else {
         my ($command, $score, $spoke, $status) = $self->_dump_speech_results($c);
@@ -112,14 +112,14 @@ sub speech_background {
 
             if ($c->hungup) {
                 $c->log(2, "Caller hung up during UserInput/speech_background");
-                Asterysk::AGI::UserHungUp->throw();
+                Asteryst::AGI::UserHungUp->throw();
             }
 
             # finished listening normally, channel is still active
         } else {
             $c->log(2, qq[command '$command'; score '$score']) if $debug;
             
-            Asterysk::AGI::UserGaveCommand->throw(
+            Asteryst::AGI::UserGaveCommand->throw(
                 command => $command,
                 score   => $score,
             );
@@ -151,7 +151,7 @@ sub get_dtmf_input {
     if ($@) {
         my $event = $@;
         
-        if ($event->isa('Asterysk::AGI::UserGaveCommand')) {
+        if ($event->isa('Asteryst::AGI::UserGaveCommand')) {
             $c->log(4, "get_dtmf_input returned: $event");
             return $event->command;
         } else {

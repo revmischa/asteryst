@@ -1,6 +1,6 @@
-package Asterysk::AGI;
+package Asteryst::AGI;
 
-# ABSTRACT: Asterysk voice application framework
+# ABSTRACT: Asteryst voice application framework
 
 use Data::Dump 'pp';
 use Data::Dumper;
@@ -10,37 +10,37 @@ use Carp qw/croak/;
 use Profile::Log;
 use DBIx::Class::Storage::DBI::Replicated;
 
-use Asterysk::Config;
-use Asterysk::ContentFetcher;
-use Asterysk::ContentSaver;
-use Asterysk::AGI::Session;
+use Asteryst::Config;
+use Asteryst::ContentFetcher;
+use Asteryst::ContentSaver;
+use Asteryst::AGI::Session;
 
 use Moose;
     extends 'Asterisk::FastAGI';
 
 # make sure controllers are loaded and compile ok
-use Asterysk::AGI::Controller::Ad;
-use Asterysk::AGI::Controller::Comments;
-use Asterysk::AGI::Controller::DirectConnect;
-use Asterysk::AGI::Controller::Entry;
-use Asterysk::AGI::Controller::Help;
-use Asterysk::AGI::Controller::Playlist;
-use Asterysk::AGI::Controller::Prompt;
-use Asterysk::AGI::Controller::Publish;
-use Asterysk::AGI::Controller::Related;
-use Asterysk::AGI::Controller::Subscription;
-use Asterysk::AGI::Controller::Tip;
-use Asterysk::AGI::Controller::UserInput;
+use Asteryst::AGI::Controller::Ad;
+use Asteryst::AGI::Controller::Comments;
+use Asteryst::AGI::Controller::DirectConnect;
+use Asteryst::AGI::Controller::Entry;
+use Asteryst::AGI::Controller::Help;
+use Asteryst::AGI::Controller::Playlist;
+use Asteryst::AGI::Controller::Prompt;
+use Asteryst::AGI::Controller::Publish;
+use Asteryst::AGI::Controller::Related;
+use Asteryst::AGI::Controller::Subscription;
+use Asteryst::AGI::Controller::Tip;
+use Asteryst::AGI::Controller::UserInput;
 
 has 'session' => (
     is => 'rw',
-    isa => 'Maybe[Asterysk::AGI::Session]',
+    isa => 'Maybe[Asteryst::AGI::Session]',
     handles => [qw/context/],
 );
 
 has 'caller' => (
     is => 'rw',
-    isa => 'Asterysk::Schema::AsteryskDB::Result::Caller',
+    isa => 'Asteryst::Schema::AsterystDB::Result::Caller',
     handles => {
         caller_id => 'phonenumber',
     },
@@ -49,14 +49,14 @@ has 'caller' => (
 
 has 'direct_connect' => (
     is => 'rw',
-    isa => 'Asterysk::Schema::AsteryskDB::Result::Partnerdirectconnects',
+    isa => 'Asteryst::Schema::AsterystDB::Result::Partnerdirectconnects',
     clearer => 'clear_dc',
 );
 
 # directconnect partner
 has 'partner' => (
     is => 'rw',
-    isa => 'Asterysk::Schema::AsteryskDB::Result::Partner',
+    isa => 'Asteryst::Schema::AsterystDB::Result::Partner',
     clearer => 'clear_partner',
 );
 
@@ -112,7 +112,7 @@ has 'loaded_controllers' => (
 
 has 'voice_session' => (
     is => 'rw',
-    isa => 'Maybe[Asterysk::Schema::AsteryskDB::Result::Voicesession]',
+    isa => 'Maybe[Asteryst::Schema::AsterystDB::Result::Voicesession]',
 );
 
 has 'hungup' => (
@@ -137,14 +137,14 @@ has '_profiler' => (
 
 has 'content_fetcher' => (
     is => 'rw',
-    isa => 'Asterysk::ContentFetcher',
+    isa => 'Asteryst::ContentFetcher',
     builder => 'build_content_fetcher',
     lazy => 1,
 );
 
 has 'content_saver' => (
     is => 'rw',
-    isa => 'Asterysk::ContentSaver',
+    isa => 'Asteryst::ContentSaver',
     builder => 'build_content_saver',
     lazy => 1,
 );
@@ -156,25 +156,25 @@ has 'speech_enabled' => (
 
 
 use FindBin;
-use lib "$FindBin::Bin/../asterysk2perl/lib";
-use lib "$FindBin::Bin/../asterysk2perl/asterysk3/lib";
+use lib "$FindBin::Bin/../asteryst2perl/lib";
+use lib "$FindBin::Bin/../asteryst2perl/asterysk3/lib";
 
-use Asterysk::Util;
-use Asterysk::Schema::AsteryskDB;
-use Asterysk::Content;
-use Asterysk::Common qw//;
+use Asteryst::Util;
+use Asteryst::Schema::AsterystDB;
+use Asteryst::Content;
+use Asteryst::Common qw//;
 
 # load controllers
 use Class::Autouse;
-Class::Autouse->load_recursive("Asterysk::AGI::Controller");
+Class::Autouse->load_recursive("Asteryst::AGI::Controller");
 
-use Asterysk::AGI::Events;
+use Asteryst::AGI::Events;
 
 # default Net::Server config options
 sub default_values {
     return {
         log_level => 3,
-        log_file  => '/var/asterysk-inst/',
+        log_file  => '/var/asteryst-inst/',
     };
 }
 
@@ -239,17 +239,17 @@ sub deactivate_grammar {
 
 =head2 config
 
-Return the config, read in from asterysk.yml.
+Return the config, read in from asteryst.yml.
 
 $c->config();
 
 This method uses memoization.  The first time it is invoked, it will read
-asterysk.yml; thereafter, it willreturn the cached copy.
+asteryst.yml; thereafter, it willreturn the cached copy.
 
 It logs any errors to the Asterisk console, using $self->debug.
 
 =cut
-my $config = Asterysk::Config->get;
+my $config = Asteryst::Config->get;
 sub config {
     return $config;
 }
@@ -294,7 +294,7 @@ sub init_speech_engine {
     
     if ($engine_loaded) {
         $self->debug("Loaded speech engine, SPEECH(status)=$engine_loaded");
-        my $busy_file = Asterysk::AGI::Controller::Prompt->get_path($self, 'busy');
+        my $busy_file = Asteryst::AGI::Controller::Prompt->get_path($self, 'busy');
         $self->agi->exec('SpeechProcessingSound', $busy_file);
         $self->speech_engine_loaded(1);
         
@@ -394,7 +394,7 @@ sub dbh {
     my ($self) = @_;
     
     return $self->_dbh if $self->_dbh;
-    $self->_dbh(Asterysk::Common::get_db_connection());
+    $self->_dbh(Asteryst::Common::get_db_connection());
     return $self->_dbh;
 }
 
@@ -522,7 +522,7 @@ sub build_content_fetcher {
     my $file_extension = $self->config->{agi}{sound_file_extension};
     my $cache_dir = $self->config->{agi}{content_cache_directory};
     
-    return Asterysk::ContentFetcher->new(
+    return Asteryst::ContentFetcher->new(
         cache_dir => $cache_dir,
         expire => $expire,
         file_extension => $file_extension,
@@ -535,7 +535,7 @@ sub build_content_saver {
     my $api_base = $self->config->{agi}{content_server_base_uri}
         or return $self->fatal_detach("Content server API URL is not configured!");
 
-    return Asterysk::ContentSaver->new(
+    return Asteryst::ContentSaver->new(
         api_base => $api_base,
     );
 }
@@ -545,7 +545,7 @@ sub fetch_content_cached {
     my ($self, $content) = @_;
     
     if ($self->config->{agi}{use_local_content}) {
-        return Asterysk::Content::get_wrapped_slin_filename($content->id);
+        return Asteryst::Content::get_wrapped_slin_filename($content->id);
     }
     
     $self->busy;
@@ -553,7 +553,7 @@ sub fetch_content_cached {
     
     # call AGI
     $self->profile_mark;
-    $self->agi->exec("AGI", "asterysk_fetch_content.pl," . $content->id);
+    $self->agi->exec("AGI", "asteryst_fetch_content.pl," . $content->id);
     $self->profile_did("fetch_content_cached");
     my $success = $self->var('content_fetch_success');
     my $path = $self->var('content_fetch_path');
@@ -590,7 +590,7 @@ sub prepare_request {
     
     my $agi = $self->agi;
 
-    my $dbconfig = $self->config->{'Model::AsteryskDB'};
+    my $dbconfig = $self->config->{'Model::AsterystDB'};
     $self->log(4, Dumper($dbconfig));
     my $connect_info = $dbconfig->{connect_info};
     if ($connect_info) {
@@ -601,7 +601,7 @@ sub prepare_request {
         if ($replicants) {
             $self->log(4, "Found replicants configuration");
 
-            my $schema = Asterysk::Schema::AsteryskDB->clone;
+            my $schema = Asteryst::Schema::AsterystDB->clone;
             $self->schema($schema);
 
             $self->schema->storage_type( ['::DBI::Replicated', {balancer_type => '::Random'}] );
@@ -612,24 +612,24 @@ sub prepare_request {
             }
             $self->schema->storage->connect_replicants(@$replicants);
         } else {
-            # just use asterysk2 dbh
-            $self->schema(Asterysk::Schema::AsteryskDB->get_connection);
+            # just use asteryst2 dbh
+            $self->schema(Asteryst::Schema::AsterystDB->get_connection);
         }
 
     } else {
-        $self->log(2, "Failed to find DB connection info in config, falling back to asterysk2 dbh");
-        $self->schema(Asterysk::Schema::AsteryskDB->get_connection);
+        $self->log(2, "Failed to find DB connection info in config, falling back to asteryst2 dbh");
+        $self->schema(Asteryst::Schema::AsterystDB->get_connection);
     }
 
     my $info = $self->input;
     $self->log(4, "got AGI call with input: " . Dumper($self->input));
     my $caller_id_name = $self->input('calleridname') || '';
-    my $caller_id_num  = Asterysk::Util->sanitize_number($self->input('callerid')) || '';
+    my $caller_id_num  = Asteryst::Util->sanitize_number($self->input('callerid')) || '';
     my $dest_num       = $self->input('dnid') || $self->input('extension') || '';
     my $session_id     = $self->input('uniqueid');
 
     # create a session for this call
-    my $session = new Asterysk::AGI::Session(
+    my $session = new Asteryst::AGI::Session(
         session_id => $session_id,
         context    => 'begin',
         agi        => $self,
@@ -816,11 +816,11 @@ sub dispatch_request {
 
         $self->log(3, "Dispatch to $uri threw an event: $event");
 
-    	if ($event->isa('Asterysk::AGI::UserGaveCommand')) {
+    	if ($event->isa('Asteryst::AGI::UserGaveCommand')) {
     	    $self->error("Uncaught user command from $pretty_invocation", $event->command, 'with score', $event->score);
-    	} elsif ($event->isa('Asterysk::AGI::SpeechEngineNotReady')) {
+    	} elsif ($event->isa('Asteryst::AGI::SpeechEngineNotReady')) {
     	    $self->error($event->description . '.', "$pretty_invocation aborted");
-    	} elsif ($event->isa('Asterysk::AGI::SpeechBackgroundFailed')) {
+    	} elsif ($event->isa('Asteryst::AGI::SpeechBackgroundFailed')) {
     	    $self->error("SpeechBackground failed; $pretty_invocation aborted");
     	} else {
     	    my $error_message;
@@ -855,11 +855,11 @@ can do this in scalar or list context, and L<forward()> will do the right thing.
 
 If the target method throws exceptions, L<forward()> will pass them along,
 so you should always call L<forward()> in an eval if you wish to do error handling.  This is especially
-important in Asterysk::AGI-land because user input events are modeled as
+important in Asteryst::AGI-land because user input events are modeled as
 exceptions.
 
 Controller methods may themselves call L<forward()>.  For instance,
-Asterysk::AGI::Playlist->play might invoke Asterysk::AGI::Comment->play under
+Asteryst::AGI::Playlist->play might invoke Asteryst::AGI::Comment->play under
 certain conditions, like this:
 
 =over 4
@@ -887,9 +887,9 @@ sub forward {
     # load controller singleton
     my $controller;
     if ($self->loaded_controllers->{$class}) {
-        $controller = "Asterysk::AGI::Controller::$class"->instance;
+        $controller = "Asteryst::AGI::Controller::$class"->instance;
     } else {
-        $controller = "Asterysk::AGI::Controller::$class"->initialize({
+        $controller = "Asteryst::AGI::Controller::$class"->initialize({
             context => $self,
         });
             
@@ -904,7 +904,7 @@ sub _agi_parse {
   my $self = shift;
 
   # Create an instance of our AGI interface
-  $self->agi(Asterysk::CoolAGI->new);
+  $self->agi(Asteryst::CoolAGI->new);
 
   # Parse the request.
   my %input = $self->agi->ReadParse();
@@ -913,7 +913,7 @@ sub _agi_parse {
 
 
 # overloaded version of Asterisk::AGI, used for sending/receiving commands to asterisk
-package Asterysk::CoolAGI;
+package Asteryst::CoolAGI;
 
 use parent 'Asterisk::AGI';
 use autodie ':io';

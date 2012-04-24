@@ -1,9 +1,9 @@
-package Asterysk::AGI::Controller::Related;
+package Asteryst::AGI::Controller::Related;
 
 use Moose;
-extends 'Asterysk::AGI::Controller';
+extends 'Asteryst::AGI::Controller';
 
-use Asterysk::Related;
+use Asteryst::Related;
 
 sub get_for_feed {
     my ($self, $c, $feed) = @_;
@@ -20,7 +20,7 @@ sub get_for_feed {
     my $subscribed_feeds = $c->session->subscribed_feeds;
     my @xcl_ids = map { $_->id } @$subscribed_feeds;
         
-    my @related = Asterysk::Related->related_to_feed(
+    my @related = Asteryst::Related->related_to_feed(
         feed    => $feed,
         caller  => $c->caller,
         limit   => 10,

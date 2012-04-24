@@ -1,9 +1,9 @@
-# interface to related asterysks
+# interface to related asterysts
 
-package Asterysk::Related;
+package Asteryst::Related;
 
 use Moose;
-use Asterysk::Common;
+use Asteryst::Common;
 use Carp qw/croak/;
 
 # get feeds related to $opts{feed} for $opts{caller}
@@ -82,7 +82,7 @@ sub related_to_feed {
 	}
 	my @tags = ();
 	my @tagsFiltered = ();
-	# Ignore tags: Entertainment,Asterysk Help Center,New Asteryskcasters,Featured Asterysks,Newly Added,Under Construction
+	# Ignore tags: Entertainment,Asteryst Help Center,New Asterystcasters,Featured Asterysts,Newly Added,Under Construction
 	my %badTag = (2=>1,17=>1,18=>1,19=>1,20=>1,21=>1);
 	while (my ($tag) = $sth->fetchrow_array) {
 		push(@tags, $tag);

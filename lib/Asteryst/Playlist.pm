@@ -1,25 +1,25 @@
-package Asterysk::Playlist;
+package Asteryst::Playlist;
 
 use Moose;
 use namespace::autoclean;
 
 use Carp qw/croak/;
 
-use Asterysk::Common;
-use Asterysk::Playlist::Item::FeedItem;
-use Asterysk::Playlist::Item::Share;
-use Asterysk::Playlist::Item::ShareIntro;
-use Asterysk::Playlist::Item::Recommendation;
-use Asterysk::Playlist::Item::DirectConnect;
-use Asterysk::Playlist::Item::Related;
-use Asterysk::Playlist::Item::Comment;
-use Asterysk::Playlist::Item::QuikHit;
+use Asteryst::Common;
+use Asteryst::Playlist::Item::FeedItem;
+use Asteryst::Playlist::Item::Share;
+use Asteryst::Playlist::Item::ShareIntro;
+use Asteryst::Playlist::Item::Recommendation;
+use Asteryst::Playlist::Item::DirectConnect;
+use Asteryst::Playlist::Item::Related;
+use Asteryst::Playlist::Item::Comment;
+use Asteryst::Playlist::Item::QuikHit;
 
 use DBIx::Class::ResultClass::HashRefInflator;
 
 has 'caller' => (
     is => 'rw',
-    isa => 'Asterysk::Schema::AsteryskDB::Result::Caller',
+    isa => 'Asteryst::Schema::AsterystDB::Result::Caller',
     required => 1,
 );
 
@@ -51,7 +51,7 @@ has 'dbh' => (
 
 has 'partner' => (
     is => 'rw',
-    isa => 'Maybe[Asterysk::Schema::AsteryskDB::Result::Partner]',
+    isa => 'Maybe[Asteryst::Schema::AsterystDB::Result::Partner]',
 );
 
 has 'loaded' => (
@@ -100,7 +100,7 @@ sub load_recommendations {
     $self->loaded_recommendations(1);
 }
 
-# returns arrayref of Asterysk::Playlist::Item instances of shares, rtqs, feeds, recommendations
+# returns arrayref of Asteryst::Playlist::Item instances of shares, rtqs, feeds, recommendations
 *load_items = \&all_items;
 sub all_items {
     my ($self) = @_;
@@ -146,7 +146,7 @@ sub insert_items {
 sub insert_quikhit {
     my ($self, $quikhit_item) = @_;
     
-    my $playlistitem = Asterysk::Playlist::Item::QuikHit->new(
+    my $playlistitem = Asteryst::Playlist::Item::QuikHit->new(
         playlist => $self,
         content => $quikhit_item->content,
         feed_item => $quikhit_item,
@@ -166,7 +166,7 @@ sub remove_related_items {
     my $items = $self->itemsref || [];
     my $i = $self->i;
     
-    # count how many related asterysks we've heard so far
+    # count how many related asterysts we've heard so far
     my $heard_related_count = grep { $_->is_related } @{$items}[0..$i];
     
     my @new_items = grep { ! $_->is_related } @$items;
@@ -341,7 +341,7 @@ sub at_start {
 # sub insert_jumpfile {
 #     my ($self, $jumpfile) = @_;
 #     if (!defined $self->{i}) {
-#         croak 'invalid call to Asterysk::Playlist->insert_jumpfile:  it was called before any files were played,';
+#         croak 'invalid call to Asteryst::Playlist->insert_jumpfile:  it was called before any files were played,';
 #     } else {
 #         my @items_copy = @{ $self->{itemsref} };
 #         splice @items_copy
@@ -362,8 +362,8 @@ share intros.  Not all shares have intros, so the list might look like this:
     $share_4,
 ]
 
-Each share is of type Asterysk::Playlist::Item::Share; each share intro is of type
-Asterysk::Item::ShareIntro.
+Each share is of type Asteryst::Playlist::Item::Share; each share intro is of type
+Asteryst::Item::ShareIntro.
 =cut
 
 sub all_shares_and_share_intros {
@@ -383,14 +383,14 @@ sub all_shares_and_share_intros {
     foreach my $share (@shares) {
         next unless $share->content;
 
-        my $share_item = Asterysk::Playlist::Item::Share->new(
+        my $share_item = Asteryst::Playlist::Item::Share->new(
           playlist => $self,
           content  => $share->content,
           share    => $share,
         );
 
         if (defined $share->messagecontent) {
-          my $share_intro = Asterysk::Playlist::Item::ShareIntro->new(
+          my $share_intro = Asteryst::Playlist::Item::ShareIntro->new(
               playlist => $self,
               share    => $share,
               content  => $share->messagecontent,
@@ -438,7 +438,7 @@ sub all_recommendations {
         
         $rec{content} = $content;
         
-        push @items, Asterysk::Playlist::Item::Recommendation->new(%rec);
+        push @items, Asteryst::Playlist::Item::Recommendation->new(%rec);
     }
     
     return \@items;
@@ -456,7 +456,7 @@ sub recommendation_feeds {
     my @rec_ids;
 
     if ($opts{use_stored_procedure}) {
-        my $dbh = $self->dbh || Asterysk::Common::get_db_connection();
+        my $dbh = $self->dbh || Asteryst::Common::get_db_connection();
         $dbh->{RaiseError} = 1;
         $self->dbh($dbh);
         
@@ -475,7 +475,7 @@ sub recommendation_feeds {
         
         return $self->rs('Audiofeed')->search({ id => \@feed_ids }) if @feed_ids;
     } elsif ($opts{use_precomputed}) {
-        my $dbh = $self->dbh || Asterysk::Common::get_db_connection();
+        my $dbh = $self->dbh || Asteryst::Common::get_db_connection();
         $dbh->{RaiseError} = 1;
         $self->dbh($dbh);
         
@@ -623,7 +623,7 @@ sub all_partner_items {
     
     my @items = map { $_->latest_item } @feeds;
     return [ map {
-        Asterysk::Playlist::Item::DirectConnect->new(
+        Asteryst::Playlist::Item::DirectConnect->new(
             content   => $_->content,
             playlist  => $self,
             feed_item => $_,
@@ -636,7 +636,7 @@ sub all_partner_items {
 sub all_subscribed_items {
     my ($self) = @_;
 
-    my $dbh = $self->dbh || Asterysk::Common::get_db_connection();
+    my $dbh = $self->dbh || Asteryst::Common::get_db_connection();
     $dbh->{RaiseError} = 1;
     $self->dbh($dbh);
     
@@ -670,7 +670,7 @@ sub all_subscribed_items {
             # skip dupes (from directconnect)
             next if grep { $feed_id == $_->feed->id } @{ $self->itemsref };
             
-            my $playlist_item = Asterysk::Playlist::Item::FeedItem->new(
+            my $playlist_item = Asteryst::Playlist::Item::FeedItem->new(
                 content_id      => $last_content_id,
                 subscription_id => $subscription_id,
                 playlist        => $self,

@@ -1,10 +1,10 @@
-package Asterysk::AGI::Events;
+package Asteryst::AGI::Events;
 
 use Exception::Class (
-    'Asterysk::AGI::UserGaveCommand' => { fields => [qw( command score )] },
-    'Asterysk::AGI::UserHungUp',
-    'Asterysk::AGI::SpeechBackgroundFailed',
-    'Asterysk::AGI::SpeechEngineNotReady' => { description => 'the SpeechCreate() application has not yet been called' },
+    'Asteryst::AGI::UserGaveCommand' => { fields => [qw( command score )] },
+    'Asteryst::AGI::UserHungUp',
+    'Asteryst::AGI::SpeechBackgroundFailed',
+    'Asteryst::AGI::SpeechEngineNotReady' => { description => 'the SpeechCreate() application has not yet been called' },
 );
 
 1;

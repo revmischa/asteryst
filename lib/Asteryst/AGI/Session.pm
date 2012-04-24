@@ -1,17 +1,17 @@
-package Asterysk::AGI::Session;
+package Asteryst::AGI::Session;
 
 # this class stores contextual information for a voice app call
 
 use Moose;
 
-use Asterysk::AGI::Controller::Comments;
+use Asteryst::AGI::Controller::Comments;
 
 has session_id => (
     is => 'rw',
     isa => 'Str',
 );
 
-has introduced_related_asterysks => (
+has introduced_related_asterysts => (
     is => 'rw',
     isa => 'Bool',
 );
@@ -67,7 +67,7 @@ has caller_can_publish_multiple_rtqs => (
 
 has agi => (
     is => 'rw',
-    isa => 'Asterysk::AGI',
+    isa => 'Asteryst::AGI',
     required => 1,
 );
 
@@ -83,8 +83,8 @@ around context => sub {
     
     return unless $self->agi->speech_enabled;
 
-    my $cmt_controller = Asterysk::AGI::Controller::Comments->instance;
-    my $playlist_controller = Asterysk::AGI::Controller::Playlist->instance;
+    my $cmt_controller = Asteryst::AGI::Controller::Comments->instance;
+    my $playlist_controller = Asteryst::AGI::Controller::Playlist->instance;
     
     if ($old_ctx ne 'comments' && $ctx eq 'comments') {
       $playlist_controller->deactivate_grammar;

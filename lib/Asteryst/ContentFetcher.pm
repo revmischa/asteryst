@@ -1,14 +1,14 @@
-package Asterysk::ContentFetcher;
+package Asteryst::ContentFetcher;
 
 # this is a module to fetch content from S3 and cache it locally
 
 use Moose;
 use namespace::autoclean;
 
-use Asterysk::Config;
+use Asteryst::Config;
 use File::DirList;
 use LWP::UserAgent;
-use Asterysk::Schema::AsteryskDB::Result::Content;
+use Asteryst::Schema::AsterystDB::Result::Content;
 
 has 'file_extension' => (
     is => 'rw',
@@ -34,7 +34,7 @@ has 'cache_dir' => (
 sub build_cache_dir {
     my ($self) = @_;
     
-    my $config = Asterysk::Config->get;
+    my $config = Asteryst::Config->get;
     return $config->{agi}{content_cache_directory}
         or die '$config->{agi}{content_cache_directory} is not defined';
 }
@@ -42,7 +42,7 @@ sub build_cache_dir {
 sub build_file_extension {
     my ($self) = @_;
     
-    my $config = Asterysk::Config->get;
+    my $config = Asteryst::Config->get;
     return $config->{agi}{sound_file_extension}
         or die '$config->{agi}{sound_file_extension} is not defined';
 }
@@ -69,7 +69,7 @@ sub get_content_cache_path {
 sub fetch_content {
     my ($self, $content_id) = @_;
     
-    my $content = new Asterysk::Schema::AsteryskDB::Result::Content->new({ id => $content_id });
+    my $content = new Asteryst::Schema::AsterystDB::Result::Content->new({ id => $content_id });
     
     my $cache_dir = $self->cache_dir;
     

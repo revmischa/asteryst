@@ -1,7 +1,7 @@
-package Asterysk::AGI::Commands::YesNo;
+package Asteryst::AGI::Commands::YesNo;
 
 use Moose;
-extends 'Asterysk::AGI::Commands';
+extends 'Asteryst::AGI::Commands';
 
 sub yes          { return qr[\A 1 | (true) \Z]smx }
 sub no           { return qr[\A 2 | (false) \Z]smx }

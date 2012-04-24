@@ -1,4 +1,4 @@
-package Asterysk::AGI::Controller;
+package Asteryst::AGI::Controller;
 
 use strict;
 use warnings;
@@ -8,7 +8,7 @@ use Quantum::Superpositions;
 
 has 'context' => (
     is => 'rw',
-    isa => 'Asterysk::AGI',
+    isa => 'Asteryst::AGI',
 );
 
 has 'grammar_name' => (

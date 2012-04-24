@@ -1,13 +1,13 @@
-package Asterysk::Playlist::Item::Comment;
+package Asteryst::Playlist::Item::Comment;
 
 use Moose;
-extends 'Asterysk::Playlist::Item';
+extends 'Asteryst::Playlist::Item';
 
 use Carp qw/croak/;
 
 has 'comment' => (
     is => 'rw',
-    isa => 'Asterysk::Schema::AsteryskDB::Result::Audiocomment',
+    isa => 'Asteryst::Schema::AsterystDB::Result::Audiocomment',
     required => 1,
 );
 

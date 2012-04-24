@@ -1,6 +1,6 @@
 # This module enables functionality via the HTTP content server
 
-package Asterysk::ContentSaver;
+package Asteryst::ContentSaver;
 
 use Moose;
 use namespace::autoclean;
@@ -74,13 +74,13 @@ sub content_server_request {
 	};
 	
 	if ($@ || ! $item_id) {
-	    return Asterysk::ContentSaver::Response->new(
+	    return Asteryst::ContentSaver::Response->new(
 	        is_success => 0,
 	        error_message => $@,
 	    );
 	}
 
-    return Asterysk::ContentSaver::Response->new(
+    return Asteryst::ContentSaver::Response->new(
         is_success => 1,
         item_id => $item_id,
     );
@@ -91,7 +91,7 @@ __PACKAGE__->meta->make_immutable;
 
 ## Minimal class to describe a content server response
 
-package Asterysk::ContentSaver::Response;
+package Asteryst::ContentSaver::Response;
 
 use Moose;
 use namespace::autoclean;

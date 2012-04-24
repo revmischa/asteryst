@@ -1,10 +1,10 @@
-package Asterysk::AGI::Controller::Comments;
+package Asteryst::AGI::Controller::Comments;
 
 use Moose;
-extends 'Asterysk::AGI::Controller';
+extends 'Asteryst::AGI::Controller';
 
-use Asterysk::Playlist::Item::Comment;
-use aliased 'Asterysk::AGI::Commands::GiveComment' => 'Command';
+use Asteryst::Playlist::Item::Comment;
+use aliased 'Asteryst::AGI::Commands::GiveComment' => 'Command';
 
 sub entry {
     my ($self, $c, $item) = @_;
@@ -32,7 +32,7 @@ sub entry {
         my @comment_items;
         COMMENT:  for my $comment (@comments) {
             my $content = $comment->content or next COMMENT;
-            my $comment_item = Asterysk::Playlist::Item::Comment->new(
+            my $comment_item = Asteryst::Playlist::Item::Comment->new(
                 content => $content,
                 playlist => $playlist,
                 comment => $comment,
@@ -108,7 +108,7 @@ sub leave_comment {
         if ($@) {
             my $event = $@;
 
-            if ($event->isa('Asterysk::AGI::UserGaveCommand')) {
+            if ($event->isa('Asteryst::AGI::UserGaveCommand')) {
                 if ($event->score < $c->config->{agi}{speech_score_threshold}) {
                     # didn't understand what they said
                     goto CONFIRM_COMMENT; # lame!
@@ -150,7 +150,7 @@ sub leave_comment {
                         #  ... falls through
                     }
                 }
-            } elsif ($event->isa('Asterysk::AGI::UserHungUp')) {
+            } elsif ($event->isa('Asteryst::AGI::UserHungUp')) {
                 # caller hung up while leaving a comment... what do we do?
                 $c->log(2, "Caller hung up while leaving a comment");
                 return $c->detach;
@@ -174,7 +174,7 @@ sub leave_comment {
 sub _publish_comment {
     my ($self, $c, $path) = @_;
 
-    $c->agi->exec("AGI", "asterysk_publish_comment.pl,$path");
+    $c->agi->exec("AGI", "asteryst_publish_comment.pl,$path");
     my $content_id = $c->var('stored_comment_content_id'); # does this work? maybe
     
     # assume success for now

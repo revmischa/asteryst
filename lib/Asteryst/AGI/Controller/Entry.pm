@@ -1,7 +1,7 @@
-package Asterysk::AGI::Controller::Entry;
+package Asteryst::AGI::Controller::Entry;
 
 use Moose;
-extends 'Asterysk::AGI::Controller';
+extends 'Asteryst::AGI::Controller';
 
 sub playlist {
     my ($self, $c) = @_;

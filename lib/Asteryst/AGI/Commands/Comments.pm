@@ -1,7 +1,7 @@
-package Asterysk::AGI::Commands::Comments;
+package Asteryst::AGI::Commands::Comments;
 
 use Moose;
-extends 'Asterysk::AGI::Commands';
+extends 'Asteryst::AGI::Commands';
 
 sub leave_comment { return qr[\A   1   |   leave_comment  \Z]smx }
 sub go_back       { return qr[\A   2   |   go_back        \Z]smx }

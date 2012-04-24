@@ -1,8 +1,8 @@
 # this represents a feed item that is from a directconnect playlist
-package Asterysk::Playlist::Item::DirectConnect;
+package Asteryst::Playlist::Item::DirectConnect;
 
 use Moose;
-extends 'Asterysk::Playlist::Item::FeedItem';
+extends 'Asteryst::Playlist::Item::FeedItem';
 
 use Carp qw/croak/;
 

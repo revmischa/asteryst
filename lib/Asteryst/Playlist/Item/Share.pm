@@ -1,13 +1,13 @@
-package Asterysk::Playlist::Item::Share;
+package Asteryst::Playlist::Item::Share;
 
 use Moose;
-extends 'Asterysk::Playlist::Item';
+extends 'Asteryst::Playlist::Item';
 
 use Carp qw/croak/;
 
 has share => (
     is => 'rw',
-    isa => 'Asterysk::Schema::AsteryskDB::Result::Audioshare',
+    isa => 'Asteryst::Schema::AsterystDB::Result::Audioshare',
     required => 1,
 );
 

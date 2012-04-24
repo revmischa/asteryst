@@ -1,6 +1,6 @@
 # Base class for sets of commands, voice/DTMF
 
-package Asterysk::AGI::Commands;
+package Asteryst::AGI::Commands;
 
 use Moose;
 use namespace::autoclean;

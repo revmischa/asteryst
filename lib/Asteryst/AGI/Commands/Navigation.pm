@@ -1,7 +1,7 @@
-package Asterysk::AGI::Commands::Navigation;
+package Asteryst::AGI::Commands::Navigation;
 
 use Moose;
-extends 'Asterysk::AGI::Commands';
+extends 'Asteryst::AGI::Commands';
 
 sub text_me       { return qr[\A 1       | (text_me)       \Z]smx }
 sub comments      { return qr[\A 2       | (comments)      \Z]smx }

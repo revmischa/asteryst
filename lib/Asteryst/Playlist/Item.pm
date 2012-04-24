@@ -1,22 +1,22 @@
-package Asterysk::Playlist::Item;
+package Asteryst::Playlist::Item;
 
 use Moose;
 use Carp qw/croak/;
 
 has playlist => (
     is => 'rw',
-    isa => 'Asterysk::Playlist',
+    isa => 'Asteryst::Playlist',
     required => 1,
 );
 
 has subscription => (
     is => 'rw',
-    isa => 'Asterysk::Schema::AsteryskDB::Result::Subscription',
+    isa => 'Asteryst::Schema::AsterystDB::Result::Subscription',
 );
 
 has content => (
     is => 'rw',
-    isa => 'Asterysk::Schema::AsteryskDB::Result::Content',
+    isa => 'Asteryst::Schema::AsterystDB::Result::Content',
     lazy => 1,
     builder => 'build_content',
 );

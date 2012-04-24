@@ -1,7 +1,7 @@
-package Asterysk::Playlist::Item::ShareIntro;
+package Asteryst::Playlist::Item::ShareIntro;
 
 use Moose;
-extends 'Asterysk::Playlist::Item::Share';
+extends 'Asteryst::Playlist::Item::Share';
 
 use Carp qw/croak/;
 

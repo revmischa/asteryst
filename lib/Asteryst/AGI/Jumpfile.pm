@@ -1,11 +1,11 @@
-=head1 Asterysk::AGI::Jumpfile
+=head1 Asteryst::AGI::Jumpfile
 
 A "jumpfile" is a file that starts n seconds into another file.  It's a way of
 implementing fast-forward, pause, and rewind (at present, the only way we know).
 
 =cut
 
-package Asterysk::AGI::Jumpfile;
+package Asteryst::AGI::Jumpfile;
 
 use Moose;
 

@@ -1,9 +1,9 @@
-package Asterysk::AGI::Controller::DirectConnect;
+package Asteryst::AGI::Controller::DirectConnect;
 
 use Moose;
-extends 'Asterysk::AGI::Controller';
+extends 'Asteryst::AGI::Controller';
 
-use Asterysk::Util;
+use Asteryst::Util;
 
 # check our DID, if it's a direct connect number mark it as such
 sub start {
@@ -20,7 +20,7 @@ sub start {
     }
     
     # canonicalize
-    my $dnid = Asterysk::Util->sanitize_number($dnid_orig);
+    my $dnid = Asteryst::Util->sanitize_number($dnid_orig);
     unless ($dnid) {
         return $c->fatal_detach("I don't understand the phone number $dnid_orig")
             unless $c->config->{agi}{accept_developer_dids};
@@ -34,7 +34,7 @@ sub start {
     
     # set caller source if not set
     unless ($c->caller->source) {
-        my $partner_id = $partner ? $partner->id : 1; # 1 = asterysk
+        my $partner_id = $partner ? $partner->id : 1; # 1 = asteryst
         $c->caller->update({ source => $partner_id });
     }
     

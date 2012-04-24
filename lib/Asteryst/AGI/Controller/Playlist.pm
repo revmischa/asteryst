@@ -1,21 +1,21 @@
-package Asterysk::AGI::Controller::Playlist;
+package Asteryst::AGI::Controller::Playlist;
 
 use Moose;
-extends 'Asterysk::AGI::Controller';
+extends 'Asteryst::AGI::Controller';
     
 use Carp qw( croak );
 use Data::Dumper;
 use Readonly;
 use Switch 'Perl6'; #FIXME:  once the production server is on Perl 5.10 or higher, replace with the built-in "use feature 'switch'";
 
-use Asterysk::AGI::Events;
-use Asterysk::AGI::Exceptions;
-use Asterysk::AGI::Controller::Prompt;
-use Asterysk::Playlist;
-use Asterysk::Notification;
-use Asterysk::ContentFetcher;
-use aliased 'Asterysk::AGI::Commands::Navigation' => 'Command';
-use aliased 'Asterysk::AGI::Commands::Comments' => 'CommentsCommand';
+use Asteryst::AGI::Events;
+use Asteryst::AGI::Exceptions;
+use Asteryst::AGI::Controller::Prompt;
+use Asteryst::Playlist;
+use Asteryst::Notification;
+use Asteryst::ContentFetcher;
+use aliased 'Asteryst::AGI::Commands::Navigation' => 'Command';
+use aliased 'Asteryst::AGI::Commands::Comments' => 'CommentsCommand';
 
 Readonly my $subscribed    => 'subscribed';
 Readonly my $unsubscribed  => 'unsubscribed';
@@ -23,12 +23,12 @@ Readonly my $debug_timing  => 0;
 
 has 'playlist' => (
     is  => 'rw',
-    isa => 'Asterysk::Playlist',
+    isa => 'Asteryst::Playlist',
 );
 
 has 'feed_waiting_for_quikhit' => (
     is => 'rw',
-    isa => 'Asterysk::Schema::AsteryskDB::Result::Audiofeed',
+    isa => 'Asteryst::Schema::AsterystDB::Result::Audiofeed',
     clearer => 'clear_feed_waiting_for_quikhit',
 );
 
@@ -49,7 +49,7 @@ sub play {
     $self->activate_grammar;
 
     my $playlist;
-    $playlist = Asterysk::Playlist->new(
+    $playlist = Asteryst::Playlist->new(
         caller => $caller,
         dbh => $c->dbh,
         partner => $c->partner,
@@ -183,7 +183,7 @@ sub play {
         my $type;
         if ($item->is_feed_item) {
             if ($playlist->get_previous_item->is_share) {
-                # that's your last share, let's move on to your asterysklist
+                # that's your last share, let's move on to your asterystlist
                 $self->play_transition($c, 'playlist');
             }
             # voice playlist episode
@@ -204,7 +204,7 @@ sub play {
         } elsif ($item->is_share_intro) {
             # don't log this
         } elsif ($item->is_related) {
-            $type = 'listen to related asterysk';
+            $type = 'listen to related asteryst';
         } elsif ($item->is_direct_connect) {
             # voice playlist episode
             $type = 11; # should we track DC listen as well?
@@ -299,17 +299,17 @@ sub play {
         elsif (! ref $event) {
             # Some code blew up with a string exception.
             # Rethrow it so the caller can handle it.
-            # If the caller is Asterysk::AGI::dispatch(), it will simply print
+            # If the caller is Asteryst::AGI::dispatch(), it will simply print
             # an informative error message and end the AGI request.
             $item->stopped_listening({ debug => $debug_timing });
             $item->reset_timer();
             die $event;
-        } elsif ($event->isa('Asterysk::AGI::MissingSoundFile')) {
+        } elsif ($event->isa('Asteryst::AGI::MissingSoundFile')) {
             my $content_id = $event->content ? $event->content->id : '(unknown)';
             $c->log(2, "Missing content id=$content_id, path: " . $event->path);
             $playlist->go_forward(1);
             next ITEM;
-        } elsif ($event->isa('Asterysk::AGI::UserGaveCommand')) {
+        } elsif ($event->isa('Asteryst::AGI::UserGaveCommand')) {
             $last_command = $event->command;
             
             if ($event->score < $c->config->{agi}{speech_score_threshold}) {
@@ -323,7 +323,7 @@ sub play {
                 $last_command = Command->pause;
                 next ITEM;
             } else {
-                my $command_mode = Asterysk::AGI::Commands->mode($last_command);
+                my $command_mode = Asteryst::AGI::Commands->mode($last_command);
                 
                 given ($last_command) {
                     when Command->play_next {
@@ -418,7 +418,7 @@ sub play {
                         eval { $c->forward('/Help/playback') };
                         my $event = $@ || '';
                         my $event_type = ref $event;
-                        if (! $event || ($event_type eq 'Asterysk::AGI::UserGaveCommand'
+                        if (! $event || ($event_type eq 'Asteryst::AGI::UserGaveCommand'
                                 && $event->command() =~ Command->resume)) {
                             # Just start playing where we left off.
                             $item->record_offset({ with_extra_seconds => $s, debug => $debug_timing });
@@ -457,7 +457,7 @@ sub play {
                             $playlist->go_forward(1);
                             next ITEM;
                         } else {
-                            Asterysk::Exception->UnreachableCodeReached->throw;
+                            Asteryst::Exception->UnreachableCodeReached->throw;
                         }
                     }
                     when Command->related {
@@ -468,7 +468,7 @@ sub play {
                         $item->reset_timer;
                         
                         if ($c->session->in_related_context) {
-                            # already in related asterysks, they pressed 3 to get back to the playlist
+                            # already in related asterysts, they pressed 3 to get back to the playlist
                             $c->context('playlist');
                             
                             # remove related items from playlist
@@ -479,14 +479,14 @@ sub play {
                             
                             next ITEM;
                         } else {
-                            # go into related asterysks context
-                            $c->log_action_for_playlist_item('listen to related asterysk', $item, { mode => $command_mode });
+                            # go into related asterysts context
+                            $c->log_action_for_playlist_item('listen to related asteryst', $item, { mode => $command_mode });
                         
                             # get related items
                             my @related = $c->forward('/Related/get_for_feed', $item->feed);
                         
                             unless (@related) {
-                                # sorry i can't find any related asterysks
+                                # sorry i can't find any related asterysts
                                 $c->prompt('relevant/no-relevant');
                             
                                 # resume playback
@@ -504,7 +504,7 @@ sub play {
                             foreach my $related_info (@related) {
                                 my ($feedId, $canonical, $nam, $dsc, $content, $vce, $comments, $afi) = (@$related_info);
                                 next unless $feedId && $canonical && $content;
-                                my $playlist_item = Asterysk::Playlist::Item::Related->new(
+                                my $playlist_item = Asteryst::Playlist::Item::Related->new(
                                     content_id => $content,
                                     playlist   => $playlist,
                                 );
@@ -516,7 +516,7 @@ sub play {
                             $playlist->insert_items(@related_items);
                         
                             # reset prompt
-                            $c->session->introduced_related_asterysks(0);
+                            $c->session->introduced_related_asterysts(0);
                             
                             # set context
                             $c->context('related');
@@ -524,7 +524,7 @@ sub play {
                             # press three to return to your playlist
                             $c->prompt('relevant/press3');
                                                     
-                            # i found X related asterysks
+                            # i found X related asterysts
                             $c->prompt('relevant/found-' . (scalar @related_items));
                             
                             # advance playlist
@@ -591,8 +591,8 @@ sub play {
                 }
             }
         }
-        elsif (ref $event && $event->isa('Asterysk::AGI::NoPathToContent')
-                   || $event->isa('Asterysk::AGI::MissingSoundFile')) {
+        elsif (ref $event && $event->isa('Asteryst::AGI::NoPathToContent')
+                   || $event->isa('Asteryst::AGI::MissingSoundFile')) {
             
             # didn't start listening, think this is unnecessary
             #$item->stopped_listening({ debug => $debug_timing });
@@ -606,7 +606,7 @@ sub play {
             $playlist->go_forward(1);
             next ITEM;
         }
-        elsif (ref $event && $event->isa('Asterysk::AGI::UserHungUp')) {
+        elsif (ref $event && $event->isa('Asteryst::AGI::UserHungUp')) {
             $item->stopped_listening({ debug => $debug_timing });
             $item->record_offset({ debug => $debug_timing });
             $item->reset_timer;
@@ -685,7 +685,7 @@ sub toggle_subscription {
         }
     } else {
         # create subscription
-        $c->prompt('unsubscribe/notsubscribed');  # Ok, I'll add this program to your Asterysklist
+        $c->prompt('unsubscribe/notsubscribed');  # Ok, I'll add this program to your Asterystlist
         $c->forward('/Subscription/create_subscription', $feed);
         
         push @{$c->session->subscribed_feeds}, $item->feed;
@@ -704,7 +704,7 @@ sub text_me {
     my ($self, $c, $item) = @_;
     
     my $feed_item = $item->feed_item;
-    my ($sent_email, $sent_sms, $info) = Asterysk::Notification->textme($c->caller, $feed_item);
+    my ($sent_email, $sent_sms, $info) = Asteryst::Notification->textme($c->caller, $feed_item);
     $c->log(2, "Sent $info textme. email=$sent_email sms=$sent_sms");
     if ($sent_sms) {
 	    $c->prompt('textme/text');
@@ -714,7 +714,7 @@ sub text_me {
 }
 
 # finished with a section of the playlist, moving on to the next
-# e.g. "that's your last share, let's move on to your asterysklist..."
+# e.g. "that's your last share, let's move on to your asterystlist..."
 sub play_transition {
     my ($self, $c, $trans) = @_;
 
@@ -761,11 +761,11 @@ sub play_intro_for_item {
     if ($item->is_recommendation) {
         # It's a recommendation.  
         if (! $c->session->introduced_recommendations) {
-            $c->prompt('introduceunhearditem/recommend'); # "here's a asteryskpost from..."
+            $c->prompt('introduceunhearditem/recommend'); # "here's a asterystpost from..."
             $c->forward('/Prompt/play_item_title', $item->feed_item) if $item->has_feed_item;
         } else {
             $c->session->introduced_recommendations(1);
-            $c->prompt('introduceunhearditem/nextrecommendation'); # "here's another Asterysk you might like."
+            $c->prompt('introduceunhearditem/nextrecommendation'); # "here's another Asteryst you might like."
         }
     } elsif ($item->is_share_intro) {
         # Intros don't get intros.  Play nothing.
@@ -796,11 +796,11 @@ sub play_intro_for_item {
         $c->prompt('introduceunhearditem/next');
         $c->forward('/Prompt/play_item_title', $item->feed_item) if $item->has_feed_item;
     } elsif ($item->is_related) {
-        if ($c->session->introduced_related_asterysks) {
-            $c->prompt('relevant/next'); # next, another related asterysk from
+        if ($c->session->introduced_related_asterysts) {
+            $c->prompt('relevant/next'); # next, another related asteryst from
         } else {
-            $c->session->introduced_related_asterysks(1);
-            $c->prompt('relevant/introduce'); # here's a relayed asterysk from
+            $c->session->introduced_related_asterysts(1);
+            $c->prompt('relevant/introduce'); # here's a relayed asteryst from
         }
         $c->forward('/Prompt/play_item_title', $item->feed_item);
     } elsif ($item->is_comment) {
@@ -845,7 +845,7 @@ sub play_intro_for_item {
 
 =head2 play_item($c, $item, $last_command)
 
-Plays a Asterysk::Playlist::Item
+Plays a Asteryst::Playlist::Item
 
 =cut
 sub play_item {
@@ -884,11 +884,11 @@ DIAGNOSTICS:
 =over 4
 
 =item
-Passes through any exceptions thrown by Asterysk::Content::get_wrapped_slin_filename.
+Passes through any exceptions thrown by Asteryst::Content::get_wrapped_slin_filename.
 
 =item
-If Asterysk::Content::get_wrapped_slin_filename succeeds, but returns an empty path, throws
-a Asterysk::AGI::NoPathToContent.
+If Asteryst::Content::get_wrapped_slin_filename succeeds, but returns an empty path, throws
+a Asteryst::AGI::NoPathToContent.
 
 =back
 
@@ -923,25 +923,25 @@ sub play_content {
         if (! $orig_path) {
             # content is missing
             $c->log(2, "Missing content " . $content->id);
-            Asterysk::AGI::MissingSoundFile->throw(content => $content);
+            Asteryst::AGI::MissingSoundFile->throw(content => $content);
         }            
 
         $c->log(4, "making jumpfile for $orig_path offset $secs secs");
         $c->profile_mark;
         my $jumpfile_retval = $agi->exec(
             'AGI',
-            "asterysk_make_jumpfile.pl,$orig_path,$secs",
+            "asteryst_make_jumpfile.pl,$orig_path,$secs",
         );
-        $c->profile_did('asterysk_make_jumpfile');
+        $c->profile_did('asteryst_make_jumpfile');
         
         # get return values
         if ($jumpfile_retval == -1) {
             my $error = $c->var('error');
-            die "Remote AGI call to asterysk_make_jumpfile.pl failed:  $error";
+            die "Remote AGI call to asteryst_make_jumpfile.pl failed:  $error";
         } elsif ($jumpfile_retval == 0) {
             $path = $c->var('jumpfile');
         } else {
-            Asterysk::Exception->UnreachableCodeReached->throw();
+            Asteryst::Exception->UnreachableCodeReached->throw();
         }
         $c->log(4, "Jumpfile AGI returned $jumpfile_retval");
         $c->log(3, "Remote jumpfile:  $path");
@@ -949,13 +949,13 @@ sub play_content {
 
     if (! $path && ! $content->offset_in_seconds) {
         $c->prompt('root/invalid_item');
-        Asterysk::AGI::NoPathToContent->throw( content => $content );
+        Asteryst::AGI::NoPathToContent->throw( content => $content );
     }
     elsif (! $c->check_if_content_path_exists($path) && ! $content->offset_in_seconds) {
        # this check only works if the fastagi daemon is running on the content server
         $c->prompt('root/invalid_item');
         $c->log(2, "Missing content $content, path: $path");
-       Asterysk::AGI::MissingSoundFile->throw(content => $content, path => $path);
+       Asteryst::AGI::MissingSoundFile->throw(content => $content, path => $path);
     } elsif ($c->check_if_content_path_exists($path)) {
         my $id = $content->id;
         $c->log(3, "Playing content $id (remote path $path)") if $debug_timing;
@@ -968,8 +968,8 @@ sub play_content {
 
         # Play file.  Unless the user listens straight through the whole item without giving
         # a command (and without errors), this will always throw an exception:
-        # - a Asterysk::AGI::UserGaveCommand,
-        # - a Asterysk::AGI::UserHungUp,
+        # - a Asteryst::AGI::UserGaveCommand,
+        # - a Asteryst::AGI::UserHungUp,
         # - or one of a number of error-type exceptions (maybe including strings)
         $c->forward('/UserInput/play_file', path => $path);
     }
@@ -1020,7 +1020,7 @@ sub finished_listening_to_item {
     # play virgin greeting
     if ($c->session->needs_virgin_greeting) {
         $c->session->clear_needs_virgin_greeting;
-        $c->prompt('greetings/intro-asterysk');
+        $c->prompt('greetings/intro-asteryst');
     }
     
     # if waiting for a quikhit, play it if available

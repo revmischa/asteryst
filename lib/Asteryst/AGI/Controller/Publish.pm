@@ -1,12 +1,12 @@
-package Asterysk::AGI::Controller::Publish;
+package Asteryst::AGI::Controller::Publish;
 
 use Moose;
-extends 'Asterysk::AGI::Controller';
+extends 'Asteryst::AGI::Controller';
 
-use Asterysk::Notification;
+use Asteryst::Notification;
 use File::Temp qw/tempfile/;
 
-# select a asteryskcast to publish to
+# select a asterystcast to publish to
 sub entry {
     my ($self, $c) = @_;
     
@@ -15,7 +15,7 @@ sub entry {
     unless ($c->caller->has_rtqs) {
         # caller doesn't have any feeds to publish to
         
-        $c->log(1, "Caller has no asteryskcasts to publish to");
+        $c->log(1, "Caller has no asterystcasts to publish to");
         $c->prompt('publisher/not-ready');
         
         return;
@@ -27,21 +27,21 @@ sub entry {
 sub choose_feed_begin {
     my ($self, $c) = @_;
     
-    # get caller's asteryskcasts
+    # get caller's asterystcasts
     my @feeds = $c->caller->rtqs;
     
     if (@feeds == 1) {
-        # only one asteryskcast
-        # welcome to asteryskcasting. ready to record a new post of
-        $c->prompt('publisher/welcomeToAsteryskCasting');
+        # only one asterystcast
+        # welcome to asterystcasting. ready to record a new post of
+        $c->prompt('publisher/welcomeToAsterystCasting');
         # (feed name)
         $c->forward('/Prompt/play_feed_title', $feeds[0]);
         $c->forward('/Publish/begin_recording', $feeds[0]);
     } else {
-        # welcome to asteryskcasting
+        # welcome to asterystcasting
         $c->prompt('publisher/welcome');
 
-        # pick asteryskcast
+        # pick asterystcast
         $c->session->caller_can_publish_multiple_rtqs(1);
         $c->forward('/Publish/choose_feed', \@feeds);
     }
@@ -52,7 +52,7 @@ sub choose_feed {
     my ($self, $c, $feeds) = @_;
     
 RESTART:
-    $c->log(1, "Selecting asteryskcast a publish to...");
+    $c->log(1, "Selecting asterystcast a publish to...");
     
     # how many digits of input we're expecting
     my $max_digits = @$feeds < 10 ? 1 : 2;
@@ -157,7 +157,7 @@ sub prepare_record {
     $c->forward('/Prompt/play_feed_title', $feed);
     
     if ($c->session->caller_can_publish_multiple_rtqs) {
-        # press star to go back and record a different asteryskcast
+        # press star to go back and record a different asterystcast
         $c->prompt('publisher/different');
     }
     
@@ -173,7 +173,7 @@ PREPARE:
     } elsif ($input && chr($input) eq '*' 
         && $c->session->caller_can_publish_multiple_rtqs) {
         
-        # "*", pick different asteryskcast
+        # "*", pick different asterystcast
         return $c->forward('/Publish/choose_feed_begin');
     } elsif (defined $input && $input == 0) {
         # no input
@@ -267,7 +267,7 @@ CONFIRM:
                 $c->log(3, "Publish recording confirm: $confirm");
                 
                 if ($confirm eq '*') {
-                    # recording cancelled. please begin a new asteryskpost after the beep
+                    # recording cancelled. please begin a new asterystpost after the beep
                     $c->prompt('publisher/confirm/cancel');
                     goto START_RECORDING;
                 }
@@ -358,7 +358,7 @@ sub save_draft {
     
     # send draft saved notif
     $c->log(2, "Sending draft saved notification to caller " . $c->caller->phonenumber);
-    Asterysk::Notification->send_episode_title_prompt($c->caller->id, $content_server_response->item_id);
+    Asteryst::Notification->send_episode_title_prompt($c->caller->id, $content_server_response->item_id);
     
     $c->no_detach_on_hangup(0);
     

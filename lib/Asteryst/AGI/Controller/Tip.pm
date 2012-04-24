@@ -1,7 +1,7 @@
-package Asterysk::AGI::Controller::Tip;
+package Asteryst::AGI::Controller::Tip;
 
 use Moose;
-extends 'Asterysk::AGI::Controller';
+extends 'Asteryst::AGI::Controller';
 
 our $TIP_COUNT = 10; # number of tip files
 

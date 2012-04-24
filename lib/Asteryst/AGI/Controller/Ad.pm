@@ -1,11 +1,11 @@
-package Asterysk::AGI::Controller::Ad;
+package Asteryst::AGI::Controller::Ad;
 
 use Moose;
-extends 'Asterysk::AGI::Controller';
+extends 'Asteryst::AGI::Controller';
 
 use LWP::UserAgent;
 use XML::Simple;
-use Asterysk::Util;
+use Asteryst::Util;
 use Digest::SHA1;
 
 sub play {
@@ -58,7 +58,7 @@ sub apptera {
     my $url = $config->{ad_url}
         or die "No ad url configured";
         
-    $url .= "&callerId=" . Asterysk::Util->format_number($c->caller_id);
+    $url .= "&callerId=" . Asteryst::Util->format_number($c->caller_id);
     
     my $ua = new LWP::UserAgent;
     my $res = $ua->get($url);

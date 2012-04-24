@@ -1,7 +1,7 @@
-package Asterysk::AGI::Controller::Subscription;
+package Asteryst::AGI::Controller::Subscription;
 
 use Moose;
-    extends 'Asterysk::AGI::Controller';
+    extends 'Asteryst::AGI::Controller';
     
 use Carp qw/croak/;
     
