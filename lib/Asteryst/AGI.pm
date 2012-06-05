@@ -38,11 +38,6 @@ has 'caller' => (
     clearer => 'clear_caller',
 );
 
-# dialed number
-has 'dnid' => (
-    is => 'rw',
-);
-
 # are we done dispatching?
 has 'detached' => (
     is => 'rw',
@@ -562,14 +557,15 @@ sub prepare_request {
 
     # create a session for this call
     my $session = new Asteryst::AGI::Session(
-        session_id => $session_id,
-        context    => 'begin',
-        agi        => $self,
+        session_id     => $session_id,
+        context        => 'begin',
+        agi            => $self,
+        dnid           => $dest_num,
+        caller_id_num  => $caller_id_num,
+        caller_id_name => $caller_id_name,
     );
     $self->session($session);
-    
-    $self->dnid($dest_num);
-    
+
     $agi->answer();
 
     unless ($caller_id_num) {
