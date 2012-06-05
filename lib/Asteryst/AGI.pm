@@ -232,7 +232,7 @@ sub noop {
 sub check_config {
     my ($self) = @_;
 
-    my @required_agi = qw/ sound_file_extension pause_timeout /;
+    my @required_agi = qw/ sound_file_extension log_file /;
     foreach my $required (@required_agi) {
         die "agi/$required missing" unless $self->config->{agi}{$required};
     }
