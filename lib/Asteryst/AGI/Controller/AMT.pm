@@ -53,7 +53,6 @@ sub irc_notify {
     $con->reg_cb(
         sent => sub {
             if ($_[2] eq 'PRIVMSG') {
-                warn "sent";
                 $con->disconnect('done');
             }
         },
