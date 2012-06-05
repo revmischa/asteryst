@@ -4,6 +4,26 @@ package Asteryst::AGI::Session;
 
 use Moose;
 
+# caller info
+
+# dialed number
+has 'dnid' => (
+    is => 'rw',
+    isa => 'Maybe[Str]',
+);
+
+has 'caller_id_num' => (
+    is => 'rw',
+    isa => 'Maybe[Str]',
+);
+
+has 'caller_id_name' => (
+    is => 'rw',
+    isa => 'Maybe[Str]',
+);
+
+###
+
 has session_id => (
     is => 'rw',
     isa => 'Str',
