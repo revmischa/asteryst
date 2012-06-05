@@ -29,6 +29,10 @@ agi:
     # extension to use for sound files
     sound_file_extension: sln
 
+    # controller modules to initialize
+    preload_controllers:
+        - UserInput
+
     #################################
     # Grammar/speech settings
     #################################

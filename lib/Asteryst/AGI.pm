@@ -21,6 +21,7 @@ use Moose;
 use Asteryst::AGI::Controller::Ad;
 use Asteryst::AGI::Controller::Prompt;
 use Asteryst::AGI::Controller::UserInput;
+use Class::Load;
 
 has 'session' => (
     is => 'rw',
@@ -30,7 +31,7 @@ has 'session' => (
 
 has 'caller' => (
     is => 'rw',
-    isa => 'Asteryst::Schema::AsterystDB::Result::Caller',
+    isa => 'Maybe[Asteryst::Schema::AsterystDB::Result::Caller]',
     handles => {
         caller_id => 'phonenumber',
     },
@@ -269,15 +270,26 @@ sub init_speech_engine {
     }
 }
 
+# initialize application, before accepting requests
 sub setup {
+    my ($self) = @_;
+    
+    # preload some controllers
+    my $preload_controllers = $self->config->{agi}{preload_controllers} || [];
+    foreach my $preload (@$preload_controllers) {
+        my $package = join('::', __PACKAGE__, 'Controller', $preload);
+        Class::Load::load_class($package);
+        $self->forward("/$preload/LOAD_CONTROLLER");
+    }
+}
+
+# reset state between requests
+sub reset_request {
     my ($self) = @_;
     
     $self->init_speech_engine;
 
     $self->loaded_grammars([]);
-
-    # preload some controllers
-    $self->forward("/$_/LOAD_CONTROLLER") for qw/Comments Entry Playlist/;
 
     # reset state
     $self->clear_cached_dbh;
@@ -511,7 +523,7 @@ sub check_if_content_path_exists {
 sub prepare_request {
     my $self = shift;
     
-    $self->setup;
+    $self->reset_request;
     
     my $agi = $self->agi;
 
@@ -536,14 +548,9 @@ sub prepare_request {
                 $self->log(4, "Connecting replicant $replicant->[0]");
             }
             $self->schema->storage->connect_replicants(@$replicants);
-        } else {
-            # just use asteryst2 dbh
-            $self->schema(Asteryst::Schema::AsterystDB->get_connection);
         }
-
     } else {
-        $self->log(2, "Failed to find DB connection info in config, falling back to asteryst2 dbh");
-        $self->schema(Asteryst::Schema::AsterystDB->get_connection);
+        $self->log(2, "Failed to find DB connection info in config. No database schema will be available.");
     }
 
     my $info = $self->input;
@@ -578,25 +585,18 @@ sub prepare_request {
 	
     my $caller = $self->look_up_caller($caller_id_num);
     $self->caller($caller);
-    $self->log(2, "Using caller record for $caller_id_num: id=" . $caller->id);
+    if ($caller) {
+        $self->log(2, "Using caller record for $caller_id_num: id=" . $caller->id);    
+        $caller->increment_visit_count;
+    }
     
-    $caller->increment_visit_count;
-    
-    # start voice_session
-    my $vsession = $self->schema->resultset('Voicesession')->create({
-        caller           => $caller->id,
-        starttime        => \ 'NOW()',
-        dialednumber     => $dest_num,
-        gatewaysessionid => $session_id,
-    });
-    
-    $self->voice_session($vsession);
-	
     return 1;
 }
 
 sub look_up_caller {
     my ($self, $num) = @_;
+
+    return unless $self->schema;
     
 	my $caller = $self->schema->resultset('Caller')->search({
 	    -or => [
@@ -624,14 +624,6 @@ sub finalize_request {
     $self->context('end');
     $self->cleanup;
     
-    # finish session
-    if ($self->voice_session) {
-        my $session_update = {
-            endtime => \ 'NOW()',
-        };
-        
-        $self->voice_session->update($session_update);
-    }
     $self->session(undef);
     
     $self->debug("Finished call, hanging up");
@@ -705,6 +697,14 @@ sub _parse_request_uri {
              }smxi;
                 
     return ($class, $method, $param_string);
+}
+
+# server is loaded, do initial setup now
+sub pre_loop_hook {
+    my ($self) = @_;
+
+    $self->setup;
+    return;
 }
 
 sub pre_server_close_hook {
