@@ -6,6 +6,9 @@ extends 'Asteryst::AGI::Controller';
 use AnyEvent;
 use AnyEvent::IRC::Client;
 
+use feature 'say';
+use Data::Dumper;
+
 sub LOAD_CONTROLLER {
     my ($self, $c, %args) = @_;
 
@@ -23,10 +26,11 @@ sub ring_space {
     # obfuscate cid_num
     $cid_num = substr($cid_num, 1, 3) . '-XXX-XXXX'; # just area code
     my $cid = $cid_num;
-    $cid .= " <$cid_num>" if $cid_num;
+    $cid .= " <$cid_name>" if $cid_name;
 
     $c->log(3, "Someone is calling the space!");
     my $msg = "Incoming call from \033[33m$cid\033[0m to extension \033[1;14m$dnid\033[0m";
+    #my $msg = "Incoming call from $cid to extension $dnid";
     $c->forward('/AMT/irc_notify', msg => $msg);
     $c->agi->exec('Dial', 'SIP/wooster&SIP/obitalk');
 }
@@ -46,20 +50,29 @@ sub irc_notify {
     my $con = new AnyEvent::IRC::Client;
 
     $con->reg_cb(disconnect => sub { $cv->broadcast });
-    $con->send_srv(
-        PRIVMSG => $channel,
-        $args{msg},
-    );
-    $con->reg_cb (
+    $con->reg_cb(
         sent => sub {
             if ($_[2] eq 'PRIVMSG') {
+                warn "sent";
                 $con->disconnect('done');
             }
-        }
+        },
+        registered => sub {
+            $con->send_msg('NOTICE', $channel, $args{msg});
+        },
+        debug_recv => sub {
+            my (undef, $ircmsg) = @_;
+            #say Dumper($ircmsg);
+        },
+        debug_send => sub {
+            my (undef, $ircmsg) = @_;
+            #say Dumper($ircmsg);
+        },
     );
     $con->connect($server, 6667, { nick => $nick });
     $cv->wait;
     $con->disconnect;
+    exit 0;
 }
 
 1;
