@@ -16,7 +16,7 @@ sub LOAD_CONTROLLER {
 }
 
 # someone is calling the space
-sub ring_space {
+sub inbound_entry {
     my ($self, $c) = @_;
 
     # caller ID
@@ -34,13 +34,20 @@ sub ring_space {
     }
     push @cid_display, "<$cid_name>" if $cid_name;
     my $cid = join(' ', @cid_display);
+    
+    # special-case front door
+    my $config = $c->config;
+    if ($config{front_door_number}) {
+        $cid = "the front door" if $cid_num eq $config{front_door_number};
+    }
+    
     $cid ||= '<Unknown>';
 
     $c->log(3, "Someone is calling the space!");
     my $msg = "Incoming call from \033[33m$cid\033[0m to extension \033[1;14m$dnid\033[0m";
     #my $msg = "Incoming call from $cid to extension $dnid";
-    $c->forward('/AMT/irc_notify', msg => $msg);
-    $c->agi->exec('Dial', 'SIP/wooster&SIP/obitalk');
+    #$c->forward('/AMT/irc_notify', msg => $msg);
+    $c->agi->exec('Macro', 'ring-space');
 }
 
 sub irc_notify {
