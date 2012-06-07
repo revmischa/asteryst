@@ -35,10 +35,41 @@ sub ring_space {
     $c->agi->exec('Dial', 'SIP/wooster&SIP/obitalk');
 }
 
-# fork, connect to irc, let people know, exit
 sub irc_notify {
     my ($self, $c, %args) = @_;
 
+    return unless $args{msg};
+    
+    my $config = $c->config;
+    my $toybot_user = $config->{toybot}{user}
+        or die "toybot.user not defined in config";
+    my $toybot_pass = $config->{toybot}{password}
+        or die "toybot.password not defined in config";
+    my $channel = $config->{irc}{channel}
+        or die "irc.channel not defined in config";
+    
+    # speak through toybot
+    my $ok = open(
+        my $rbot_fh => "|-",
+        "/home/toybot/rbot/bin/rbot-remote",
+        -u => $toybot_user,
+        -p => $toybot_pass,
+        -d => $channel,
+    );
+    unless ($ok) {
+        warn "failed to run rbot-remote: $!";
+        return;
+    }
+
+    print $rbot_fh $args{msg};
+    close($rbot_fh);
+}
+
+# disabled
+# fork, connect to irc, let people know, exit
+sub fork_irc_notify {
+    my ($self, $c, %args) = @_;
+    
     fork and return;
 
     my $config  = $c->config;
@@ -57,7 +88,8 @@ sub irc_notify {
             }
         },
         registered => sub {
-            $con->send_msg('NOTICE', $channel, $args{msg});
+            # this works on most networks. not so good on freenode.
+            $con->send_msg('PRIVMSG', $channel, $args{msg});
         },
         debug_recv => sub {
             my (undef, $ircmsg) = @_;
