@@ -19,14 +19,22 @@ sub LOAD_CONTROLLER {
 sub ring_space {
     my ($self, $c) = @_;
 
+    # caller ID
     my $cid_num = $c->session->caller_id_num || '';
     my $cid_name = $c->session->caller_id_name || '';
+    
+    # dialed number id
     my $dnid = $c->session->dnid || '<Unknown>';
 
-    # obfuscate cid_num
-    $cid_num = substr($cid_num, 1, 3) . '-XXX-XXXX'; # just area code
-    my $cid = $cid_num;
-    $cid .= " <$cid_name>" if $cid_name;
+    my @cid_display;
+    if ($cid_num) {
+        # obfuscate cid_num
+        $cid_num = substr($cid_num, 1, 3) . '-XXX-XXXX'; # just area code
+        push @cid_display, $cid_num;
+    }
+    push @cid_display, "<$cid_name>" if $cid_name;
+    my $cid = join(' ', @cid_display);
+    $cid ||= '<Unknown>';
 
     $c->log(3, "Someone is calling the space!");
     my $msg = "Incoming call from \033[33m$cid\033[0m to extension \033[1;14m$dnid\033[0m";
@@ -50,7 +58,7 @@ sub irc_notify {
     
     # speak through toybot
     my $ok = open(
-        my $rbot_fh => "|-",
+        my $rbot_fh => "|-", # open STDIN
         "/home/toybot/rbot/bin/rbot-remote",
         -u => $toybot_user,
         -p => $toybot_pass,
