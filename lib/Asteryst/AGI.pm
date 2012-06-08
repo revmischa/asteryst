@@ -566,8 +566,6 @@ sub prepare_request {
     );
     $self->session($session);
 
-    $agi->answer();
-
     unless ($caller_id_num) {
         # no callerID number
         $agi->exec('wait', '1');
