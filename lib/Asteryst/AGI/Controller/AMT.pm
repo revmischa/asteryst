@@ -11,8 +11,7 @@ use Data::Dumper;
 
 sub LOAD_CONTROLLER {
     my ($self, $c, %args) = @_;
-
-    $c->log(4, "Loading AMT controller");
+    # init stuff can go here
 }
 
 # someone is calling the space
@@ -21,6 +20,7 @@ sub inbound_entry {
 
     # caller ID
     my $cid_num = $c->session->caller_id_num || '';
+    my $cid_num_orig = $cid_num;
     my $cid_name = $c->session->caller_id_name || '';
     
     # dialed number id
@@ -37,8 +37,8 @@ sub inbound_entry {
     
     # special-case front door
     my $config = $c->config;
-    if ($config{front_door_number}) {
-        $cid = "the front door" if $cid_num eq $config{front_door_number};
+    if ($cid_num_orig && $config->{front_door_number}) {
+        $cid = "the front door" if $cid_num_orig eq $config->{front_door_number};
     }
     
     $cid ||= '<Unknown>';
@@ -46,7 +46,7 @@ sub inbound_entry {
     $c->log(3, "Someone is calling the space!");
     my $msg = "Incoming call from \033[33m$cid\033[0m to extension \033[1;14m$dnid\033[0m";
     #my $msg = "Incoming call from $cid to extension $dnid";
-    #$c->forward('/AMT/irc_notify', msg => $msg);
+    $c->forward('/AMT/irc_notify', msg => $msg);
     $c->agi->exec('Macro', 'ring-space');
 }
 
